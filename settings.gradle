@@ -1,0 +1,29 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        maven { url = 'https://maven.fabricmc.net/' }
+        maven { url = 'https://jitpack.io/' }
+    }
+
+    plugins {
+        id 'net.fabricmc.fabric-loom' version settings.loom_version
+        id 'com.gradleup.shadow' version settings.shadow_version
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
+    repositories {
+        mavenCentral()
+        maven { url = 'https://maven.fabricmc.net/' }
+        maven { url = 'https://jitpack.io/' }
+    }
+}
+
+rootProject.name = 'crystal-config'
+
+include 'core'
+include 'bridge-minecraft'
+include 'minecraft-mod'
+include 'wiki'

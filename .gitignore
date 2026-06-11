@@ -1,0 +1,61 @@
+# Gradle
+.gradle/
+build/
+*/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Java / Kotlin
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+*.log
+hs_err_pid*
+replay_pid*
+
+# Minecraft / Fabric / Loom run data
+run/
+*/run/
+runs/
+*/runs/
+.minecraft/
+logs/
+crash-reports/
+saves/
+resourcepacks/
+options.txt
+servers.dat
+usercache.json
+usernamecache.json
+
+# IDEs / editors
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node / frontend tooling, if added later
+node_modules/
+dist/
+coverage/
+.npm/
+.yarn/
+.pnpm-store/
+
+# Environment / local secrets
+.env
+.env.*
+!.env.example
+local.properties
+*.local

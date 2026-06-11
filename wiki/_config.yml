@@ -1,0 +1,9 @@
+title: CrystalConfig Wiki
+description: Developer guide for adding CrystalConfig to Fabric Minecraft mods.
+lang: en
+markdown: kramdown
+highlighter: rouge
+permalink: pretty
+exclude:
+  - build.gradle
+  - README.md

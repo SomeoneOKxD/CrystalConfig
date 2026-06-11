@@ -1,0 +1,17 @@
+subprojects {
+    group = 'dev.someoneok'
+    version = '0.1.0'
+
+    plugins.withType(JavaPlugin).configureEach {
+        java {
+            toolchain { languageVersion = JavaLanguageVersion.of(17) }
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        options.release = 17
+    }
+}

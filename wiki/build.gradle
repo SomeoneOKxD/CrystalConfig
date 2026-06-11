@@ -1,0 +1,6 @@
+plugins {
+    id 'base'
+}
+
+// Static documentation module for the GitHub Pages wiki.
+// The Pages workflow in .github/workflows/wiki-pages.yml publishes this directory.
