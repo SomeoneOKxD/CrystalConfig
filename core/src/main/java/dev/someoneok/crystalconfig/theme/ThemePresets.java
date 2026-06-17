@@ -9,12 +9,16 @@ public final class ThemePresets {
     private static final FontScale FONTS = new FontScale("regular", "medium", "semibold", 9, 11, 13, 17, 24);
     private static final AnimationSpec ANIMATION = new AnimationSpec(34, 22, 12);
 
-    private static Theme theme(String name, Palette palette) {
-        return new Theme(name, palette, SPACING, FONTS, new Radii(3, 6, 10, 999), ANIMATION);
+    public static Theme theme(String name, Palette palette, Radii radii) {
+        return new Theme(name, palette, SPACING, FONTS, radii, ANIMATION);
     }
 
-    private static Theme softTheme(String name, Palette palette) {
-        return new Theme(name, palette, SPACING, FONTS, new Radii(4, 8, 12, 999), ANIMATION);
+    public static Theme theme(String name, Palette palette) {
+        return theme(name, palette, new Radii(3, 6, 10, 999));
+    }
+
+    public static Theme softTheme(String name, Palette palette) {
+        return theme(name, palette, new Radii(4, 8, 12, 999));
     }
 
     public static Theme darkCrimson() {
