@@ -6,6 +6,12 @@ on:
     tags: ["v*"]
   pull_request:
   workflow_dispatch:
+    inputs:
+      force_recreate_release:
+        description: "Delete and recreate the existing release/tag for this version"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -77,9 +83,9 @@ jobs:
           name: crystal-config-${{ steps.version.outputs.mod_version }}-mc${{ steps.version.outputs.minecraft_version }}
           if-no-files-found: error
           path: |
-            minecraft-mod/build/libs/*.jar
-            !minecraft-mod/build/libs/*-dev.jar
-            !minecraft-mod/build/libs/*-javadoc.jar
+            crystal-config/build/libs/*.jar
+            !crystal-config/build/libs/*-dev.jar
+            !crystal-config/build/libs/*-javadoc.jar
 
       - name: Create version tag and GitHub release
         if: github.event_name != 'pull_request' && !startsWith(github.ref, 'refs/tags/')
@@ -93,16 +99,25 @@ jobs:
         run: |
           set -euo pipefail
 
+          FORCE_RECREATE="${{ github.event_name == 'workflow_dispatch' && inputs.force_recreate_release }}"
+
           if git ls-remote --exit-code --tags origin "refs/tags/${RELEASE_TAG}" >/dev/null 2>&1; then
-            echo "::notice::Release tag ${RELEASE_TAG} already exists. Skipping tag and release creation."
-            echo "::notice::Bump mod_version or minecraft_version in gradle.properties when you want a new JitPack release."
-            exit 0
+            if [ "${FORCE_RECREATE}" = "true" ]; then
+              echo "::warning::Force recreating ${RELEASE_TAG}. This moves the tag to the current commit."
+              gh release delete "${RELEASE_TAG}" --yes --cleanup-tag || true
+              git push --delete origin "${RELEASE_TAG}" || true
+              git tag -d "${RELEASE_TAG}" || true
+            else
+              echo "::notice::Release tag ${RELEASE_TAG} already exists. Skipping tag and release creation."
+              echo "::notice::Bump mod_version or minecraft_version in gradle.properties, or run this workflow manually with force_recreate_release enabled."
+              exit 0
+            fi
           fi
 
-          mapfile -t RELEASE_FILES < <(find minecraft-mod/build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-dev.jar' ! -name '*-javadoc.jar' | sort)
+          mapfile -t RELEASE_FILES < <(find crystal-config/build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-dev.jar' ! -name '*-javadoc.jar' | sort)
 
           if [ "${#RELEASE_FILES[@]}" -eq 0 ]; then
-            echo "No release jar files found in minecraft-mod/build/libs" >&2
+            echo "No release jar files found in crystal-config/build/libs" >&2
             exit 1
           fi
 

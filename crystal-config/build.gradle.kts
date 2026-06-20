@@ -63,15 +63,6 @@ loom {
     accessWidenerPath = file("src/main/resources/crystalconfig.accesswidener")
 }
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(25))
-    }
-
-    withSourcesJar()
-    withJavadocJar()
-}
-
 tasks {
     val generateMsdfFontTasks = msdfFaces.map { spec ->
         val sourceFont = layout.projectDirectory.file("src/main/resources/assets/crystalconfig/fonts/source/${spec.sourceFileName}")

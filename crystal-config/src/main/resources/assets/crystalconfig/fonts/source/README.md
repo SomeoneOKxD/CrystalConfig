@@ -33,5 +33,5 @@ tools/msdf-atlas-gen/msdf-atlas-gen.exe
 Then run the IntelliJ Gradle task:
 
 ```text
-:minecraft-mod:generateMsdfFonts
+:crystal-config:generateMsdfFonts
 ```

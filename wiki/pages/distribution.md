@@ -30,7 +30,7 @@ Replace `<version>` with an official release tag from `SomeoneOKxD/CrystalConfig
 
 ## What the dependency resolves to
 
-The official JitPack publication exposes the `minecraft-mod` artifact as `crystal-config`.
+The official JitPack publication exposes the `crystal-config` Gradle module as the `crystal-config` Maven artifact.
 
 | Artifact | Purpose |
 |---|---|
@@ -69,3 +69,6 @@ v1.0-mc26.1
 ```
 
 The build workflow creates the tag and GitHub release automatically on pushes to `main` or `master` when that tag does not already exist. Bump either `mod_version` or `minecraft_version` in `gradle.properties` before publishing a new release.
+
+
+> If this version was already released before the JitPack module-name fix, rerun the build workflow manually with `force_recreate_release` enabled, or publish a bumped version.

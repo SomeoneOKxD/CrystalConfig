@@ -14,4 +14,4 @@ before_install:
     java -version
 
 install:
-  - ./gradlew --no-daemon :minecraft-mod:publishToMavenLocal --stacktrace
+  - ./gradlew --no-daemon :crystal-config:publishToMavenLocal --stacktrace

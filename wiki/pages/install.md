@@ -82,7 +82,7 @@ The `crystalconfig` mod also calls `MinecraftAutoConfig.register()` from its own
 
 ## Sources in IDEs
 
-The official JitPack publication attaches a combined sources jar containing `minecraft-mod`, `core`, and `bridge-minecraft` sources. Gradle-aware IDEs can use that sources jar for navigation when dependency sources are downloaded.
+The official JitPack publication attaches a combined sources jar containing `crystal-config`, `core`, and `bridge-minecraft` sources. Gradle-aware IDEs can use that sources jar for navigation when dependency sources are downloaded.
 
 ## What to import
 
@@ -106,3 +106,6 @@ import dev.someoneok.crystalconfig.autoconfig.ConfigCategory;
 import dev.someoneok.crystalconfig.autoconfig.ConfigSlider;
 import dev.someoneok.crystalconfig.autoconfig.ConfigToggle;
 ```
+
+
+> If this version was already released before the JitPack module-name fix, rerun the build workflow manually with `force_recreate_release` enabled, or publish a bumped version.

@@ -4,7 +4,11 @@ subprojects {
 
     plugins.withType(JavaPlugin).configureEach {
         java {
-            toolchain { languageVersion = JavaLanguageVersion.of(17) }
+            toolchain {
+                languageVersion = JavaLanguageVersion.of(25)
+            }
+            sourceCompatibility = JavaVersion.VERSION_25
+            targetCompatibility = JavaVersion.VERSION_25
             withSourcesJar()
             withJavadocJar()
         }
@@ -12,18 +16,18 @@ subprojects {
 
     tasks.withType(JavaCompile).configureEach {
         options.encoding = 'UTF-8'
-        options.release = 17
+        options.release = 25
     }
 }
 
 tasks.register('buildModWithSources') {
     group = 'build'
-    description = 'Builds the :minecraft-mod:shadowJar output and the combined sources jar for CrystalConfig.'
-    dependsOn ':minecraft-mod:shadowJar', ':minecraft-mod:sourcesJar'
+    description = 'Builds the :crystal-config:shadowJar output and the combined sources jar for CrystalConfig.'
+    dependsOn ':crystal-config:shadowJar', ':crystal-config:sourcesJar'
 }
 
 tasks.register('publishModToMavenLocal') {
     group = 'publishing'
-    description = 'Publishes the :minecraft-mod:shadowJar output and sources jar to Maven Local.'
-    dependsOn ':minecraft-mod:publishToMavenLocal'
+    description = 'Publishes the :crystal-config:shadowJar output and sources jar to Maven Local.'
+    dependsOn ':crystal-config:publishToMavenLocal'
 }

@@ -41,24 +41,24 @@ FontAwesomeBrands-Regular.ttf       -> media-brands.ttf
 Run from IntelliJ Gradle:
 
 ```text
-:minecraft-mod:generateMsdfFonts
+:crystal-config:generateMsdfFonts
 ```
 
 This generates:
 
 ```text
-minecraft-mod/src/main/resources/assets/crystalconfig/msdf/*.json
-minecraft-mod/src/main/resources/assets/crystalconfig/textures/msdf/*.png
+crystal-config/src/main/resources/assets/crystalconfig/msdf/*.json
+crystal-config/src/main/resources/assets/crystalconfig/textures/msdf/*.png
 ```
 
 You can also generate one face at a time:
 
 ```text
-:minecraft-mod:generateMsdfRegularFont
-:minecraft-mod:generateMsdfMediumFont
-:minecraft-mod:generateMsdfSemiboldFont
-:minecraft-mod:generateMsdfFallbackSymbolsFont
-:minecraft-mod:generateMsdfMediaBrandsFont
+:crystal-config:generateMsdfRegularFont
+:crystal-config:generateMsdfMediumFont
+:crystal-config:generateMsdfSemiboldFont
+:crystal-config:generateMsdfFallbackSymbolsFont
+:crystal-config:generateMsdfMediaBrandsFont
 ```
 
 ## Charset files
@@ -95,7 +95,7 @@ The config settings button uses the gear glyph `⚙` (`U+2699`), so `symbols.cha
 After changing the charset, run:
 
 ```text
-:minecraft-mod:generateMsdfFallbackSymbolsFont
+:crystal-config:generateMsdfFallbackSymbolsFont
 ```
 
 ## Media / brand icon glyphs

@@ -16,7 +16,7 @@ This is not a distribution path. CrystalConfig should still be consumed from the
 |---|---|
 | `core` | Renderer-neutral components, layout, state, AutoConfig, persistence, themes, and draw commands. |
 | `bridge-minecraft` | Small adapter surface for Minecraft integrations. |
-| `minecraft-mod` | Fabric client screen, render backend, MSDF text renderer, assets, and Minecraft-only widgets. |
+| `crystal-config` | Fabric client screen, render backend, MSDF text renderer, assets, and Minecraft-only widgets. |
 | `wiki` | This GitHub Pages developer wiki. |
 
 ## Adapter contract

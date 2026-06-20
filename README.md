@@ -23,14 +23,14 @@ The reusable UI framework lives in `core`. Minecraft-specific rendering, input i
 | --- | --- |
 | `core` | Reusable UI components, layout, state, annotations, themes, draw commands, and JSON persistence. Contains no Minecraft imports. |
 | `bridge-minecraft` | Loader/version-neutral interfaces for Minecraft render and input backends. |
-| `minecraft-mod` | Fabric client module, Minecraft renderer backend, MSDF text renderer, shaders, and Minecraft-only widgets. |
+| `crystal-config` | Published Fabric client module, Minecraft renderer backend, MSDF text renderer, shaders, and Minecraft-only widgets. This is the JitPack artifact id. |
 | `docs` | Source-maintainer notes and API references for working on this repository. |
 | `wiki` | GitHub Pages developer guide for using CrystalConfig from another mod. |
 
 ## Requirements
 
-- Java 25 for building the included Fabric `minecraft-mod` module
-- Java 17 bytecode target for `core` and `bridge-minecraft`
+- Java 25 for building the included Fabric `crystal-config` module
+- Global Java 25 toolchain and bytecode target across all modules
 - Gradle wrapper included in the repository
 - Network access on the first build so Gradle can download dependencies
 
@@ -76,7 +76,7 @@ Build the distributable mod jar and combined sources jar:
 ./gradlew buildModWithSources
 ```
 
-The outputs are written to `minecraft-mod/build/libs/`. The main jar is produced by `:minecraft-mod:shadowJar`; `*-dev.jar` is the plain unshaded development jar.
+The outputs are written to `crystal-config/build/libs/`. The main jar is produced by `:crystal-config:shadowJar`; `*-dev.jar` is the plain unshaded development jar.
 
 A full Gradle build is still available when you want every standard verification task:
 
@@ -87,7 +87,7 @@ A full Gradle build is still available when you want every standard verification
 To generate MSDF font atlases from local TTF files:
 
 ```bash
-./gradlew :minecraft-mod:generateMsdfFonts
+./gradlew :crystal-config:generateMsdfFonts
 ```
 
 See `docs/MSDF_FONT_PIPELINE.md` for the expected font file names and `msdf-atlas-gen` location.
@@ -166,3 +166,6 @@ public static final MutableState<SoundSetting> alertSound =
 This project is proprietary and all rights are reserved.
 
 The root project and included modules contain `LICENSE` files with the same proprietary terms. The Fabric mod metadata also declares `All-Rights-Reserved`. Do not copy, modify, publish, sublicense, distribute, or use this software without prior written permission from the copyright holder.
+
+
+> JitPack note: if a version tag already exists from an older broken build, rerun the `Build and release CrystalConfig mod` workflow manually with `force_recreate_release` enabled, or bump `mod_version` / `minecraft_version` before pushing.

@@ -38,7 +38,7 @@ Components do not render directly. They submit commands to `DrawList`:
 
 ### Minecraft implementation
 
-`minecraft-mod` contains the Fabric client entrypoint, backend implementation, MSDF font renderer, shaders, and Minecraft-only widgets such as the sound picker. Porting to another loader should replace this module, not the core UI model.
+`crystal-config` contains the Fabric client entrypoint, backend implementation, MSDF font renderer, shaders, and Minecraft-only widgets such as the sound picker. Porting to another loader should replace this module, not the core UI model.
 
 ## Frame lifecycle
 

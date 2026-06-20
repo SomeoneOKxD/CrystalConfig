@@ -44,7 +44,7 @@ When CrystalConfig is required at runtime, add it to the consuming mod's `fabric
 
 ## Official release artifacts
 
-CrystalConfig's distributable artifact is the `shadowJar` output from the `minecraft-mod` module. That shaded jar is the actual Fabric mod jar: it contains the Minecraft module plus the internal `core` and `bridge-minecraft` code. No remap task is used for the published artifact in this build setup.
+CrystalConfig's distributable artifact is the `shadowJar` output from the `crystal-config` module. That shaded jar is the actual Fabric mod jar: it contains the Minecraft module plus the internal `core` and `bridge-minecraft` code. No remap task is used for the published artifact in this build setup.
 
 Build the official local release artifacts with:
 
@@ -52,7 +52,7 @@ Build the official local release artifacts with:
 ./gradlew buildModWithSources
 ```
 
-The relevant outputs are written to `minecraft-mod/build/libs/`:
+The relevant outputs are written to `crystal-config/build/libs/`:
 
 - `crystal-config-<mod_version>-mc<minecraft_version>.jar` — shaded Fabric mod jar for distribution.
 - `crystal-config-<mod_version>-mc<minecraft_version>-sources.jar` — combined sources for IDE navigation.
@@ -66,13 +66,18 @@ The `Build and release CrystalConfig mod` workflow at `.github/workflows/build-m
 The root `jitpack.yml` prepares Java 25 and runs:
 
 ```bash
-./gradlew --no-daemon :minecraft-mod:publishToMavenLocal --stacktrace
+./gradlew --no-daemon :crystal-config:publishToMavenLocal --stacktrace
 ```
 
-The `minecraft-mod` Maven publication attaches `shadowJar` as the main artifact and the combined sources jar as the sources artifact. On JitPack, the intended public coordinate is:
+The `crystal-config` Maven publication attaches `shadowJar` as the main artifact and the combined sources jar as the sources artifact. On JitPack, the public coordinate uses the JitPack multi-module format, where the artifact id is the Gradle module name:
 
 ```text
 com.github.SomeoneOKxD.CrystalConfig:crystal-config:<version>
 ```
 
 On pushes to `main` or `master`, the workflow creates an official annotated tag and GitHub release when that version tag does not already exist. The tag format is `v<mod_version>-mc<minecraft_version>`, for example `v1.0-mc26.1`. This lets the same `mod_version` be published for multiple Minecraft versions. Only official tags from `SomeoneOKxD/CrystalConfig` should be used for public releases.
+
+
+### Recreating an existing JitPack tag
+
+JitPack builds from the Git tag. If a broken tag such as `v1.0-mc26.1` already exists, either bump `mod_version`/`minecraft_version` or run the `Build and release CrystalConfig mod` workflow manually with `force_recreate_release` enabled. That deletes and recreates the GitHub release/tag so JitPack can rebuild from the corrected commit.
