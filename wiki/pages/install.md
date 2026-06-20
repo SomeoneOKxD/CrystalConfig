@@ -20,7 +20,7 @@ The official JitPack coordinate is:
 com.github.SomeoneOKxD.CrystalConfig:crystal-config:<version>
 ```
 
-Replace `<version>` with an official release tag from `SomeoneOKxD/CrystalConfig`. Do not use forked repositories, mirrored repositories, alternate Maven repositories, or alternate JitPack coordinates.
+Replace `<version>` with an official release tag from `SomeoneOKxD/CrystalConfig`, for example `v1.0+mc26.1`. Do not use forked repositories, mirrored repositories, alternate Maven repositories, or alternate JitPack coordinates.
 
 The mod metadata in this project targets Minecraft `26.1` and Fabric Loader `0.18.5` or newer.
 
