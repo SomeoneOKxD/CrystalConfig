@@ -26,7 +26,7 @@ dependencies {
 }
 ```
 
-Replace `<version>` with an official release tag from `SomeoneOKxD/CrystalConfig`, for example `v1.0+mc26.1`.
+Replace `<version>` with an official release tag from `SomeoneOKxD/CrystalConfig`, for example `v1.0-mc26.1`.
 
 ## What the dependency resolves to
 
@@ -59,13 +59,13 @@ Use `modImplementation(...)` for normal development and runtime resolution. Do n
 Official release tags use this format:
 
 ```text
-v<mod_version>+mc<minecraft_version>
+v<mod_version>-mc<minecraft_version>
 ```
 
 Example:
 
 ```text
-v1.0+mc26.1
+v1.0-mc26.1
 ```
 
 The build workflow creates the tag and GitHub release automatically on pushes to `main` or `master` when that tag does not already exist. Bump either `mod_version` or `minecraft_version` in `gradle.properties` before publishing a new release.

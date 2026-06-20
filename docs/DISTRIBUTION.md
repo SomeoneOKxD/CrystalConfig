@@ -26,7 +26,7 @@ dependencies {
 }
 ```
 
-Replace `<version>` with an official release tag from `SomeoneOKxD/CrystalConfig`, for example `v1.0+mc26.1`.
+Replace `<version>` with an official release tag from `SomeoneOKxD/CrystalConfig`, for example `v1.0-mc26.1`.
 
 ## Fabric metadata
 
@@ -54,8 +54,8 @@ Build the official local release artifacts with:
 
 The relevant outputs are written to `minecraft-mod/build/libs/`:
 
-- `crystal-config-<mod_version>+mc<minecraft_version>.jar` — shaded Fabric mod jar for distribution.
-- `crystal-config-<mod_version>+mc<minecraft_version>-sources.jar` — combined sources for IDE navigation.
+- `crystal-config-<mod_version>-mc<minecraft_version>.jar` — shaded Fabric mod jar for distribution.
+- `crystal-config-<mod_version>-mc<minecraft_version>-sources.jar` — combined sources for IDE navigation.
 
 Do not upload `*-dev.jar` or `*-javadoc.jar` as the main release artifact.
 
@@ -75,4 +75,4 @@ The `minecraft-mod` Maven publication attaches `shadowJar` as the main artifact 
 com.github.SomeoneOKxD.CrystalConfig:crystal-config:<version>
 ```
 
-On pushes to `main` or `master`, the workflow creates an official annotated tag and GitHub release when that version tag does not already exist. The tag format is `v<mod_version>+mc<minecraft_version>`, for example `v1.0+mc26.1`. This lets the same `mod_version` be published for multiple Minecraft versions. Only official tags from `SomeoneOKxD/CrystalConfig` should be used for public releases.
+On pushes to `main` or `master`, the workflow creates an official annotated tag and GitHub release when that version tag does not already exist. The tag format is `v<mod_version>-mc<minecraft_version>`, for example `v1.0-mc26.1`. This lets the same `mod_version` be published for multiple Minecraft versions. Only official tags from `SomeoneOKxD/CrystalConfig` should be used for public releases.

@@ -64,7 +64,7 @@ dependencies {
 }
 ```
 
-Replace `<version>` with an official CrystalConfig release tag from the repository, for example `v1.0+mc26.1`. Release tags are generated from `mod_version` and `minecraft_version` in `gradle.properties`, so the same CrystalConfig version can be released for different Minecraft versions. Do not use forked repositories, mirrored repositories, alternate Maven repositories, or alternate JitPack coordinates.
+Replace `<version>` with an official CrystalConfig release tag from the repository, for example `v1.0-mc26.1`. Release tags are generated from `mod_version` and `minecraft_version` in `gradle.properties`, so the same CrystalConfig version can be released for different Minecraft versions. Do not use forked repositories, mirrored repositories, alternate Maven repositories, or alternate JitPack coordinates.
 
 When CrystalConfig is a separate runtime dependency, also add `crystalconfig` to your mod's `fabric.mod.json` dependencies. See [Official Distribution](docs/DISTRIBUTION.md) for the official artifact details.
 

@@ -57,7 +57,7 @@ jobs:
             exit 1
           fi
 
-          TAG="v${MOD_VERSION}+mc${MINECRAFT_VERSION}"
+          TAG="v${MOD_VERSION}-mc${MINECRAFT_VERSION}"
           RELEASE_NAME="CrystalConfig ${MOD_VERSION} for Minecraft ${MINECRAFT_VERSION}"
 
           echo "mod_version=$MOD_VERSION" >> "$GITHUB_OUTPUT"
@@ -74,7 +74,7 @@ jobs:
       - name: Upload mod and sources
         uses: actions/upload-artifact@v6
         with:
-          name: crystal-config-${{ steps.version.outputs.mod_version }}+mc${{ steps.version.outputs.minecraft_version }}
+          name: crystal-config-${{ steps.version.outputs.mod_version }}-mc${{ steps.version.outputs.minecraft_version }}
           if-no-files-found: error
           path: |
             minecraft-mod/build/libs/*.jar

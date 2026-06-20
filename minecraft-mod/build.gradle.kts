@@ -9,7 +9,7 @@ plugins {
 val modVersion = property("mod_version") as String
 val minecraftVersion = property("minecraft_version") as String
 val baseName = property("archives_base_name") as String
-val jarVersion = "$modVersion+mc$minecraftVersion"
+val jarVersion = "$modVersion-mc$minecraftVersion"
 
 val isJitPack = System.getenv("JITPACK").equals("true", ignoreCase = true)
 val jitPackVersion = System.getenv("VERSION")
