@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% if page.title %}{{ page.title }} | {% endif %}{{ site.title }}</title>
   <meta name="description" content="{{ page.description | default: site.description }}">
+  <link rel="icon" href="{{ '/assets/img/favicon.svg' | relative_url }}" type="image/svg+xml">
+  <link rel="alternate icon" href="{{ '/favicon.ico' | relative_url }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ '/assets/img/apple-touch-icon.png' | relative_url }}">
+  <link rel="manifest" href="{{ '/site.webmanifest' | relative_url }}">
+  <meta name="theme-color" content="#0e1117">
   <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
 </head>
 <body>
@@ -12,7 +17,12 @@
 
   <header class="topbar" aria-label="Site header">
     <a class="topbar-brand" href="{{ '/' | relative_url }}">
-      <span class="brand-mark">CC</span>
+      <span class="brand-mark brand-logo">
+        <picture>
+          <source srcset="{{ '/assets/img/logo.svg' | relative_url }}" type="image/svg+xml">
+          <img src="{{ '/assets/img/logo.png' | relative_url }}" alt="CrystalConfig logo" width="40" height="40">
+        </picture>
+      </span>
       <span>
         <strong>CrystalConfig</strong>
         <small>Developer Wiki</small>

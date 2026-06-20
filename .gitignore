@@ -2,7 +2,6 @@
 .gradle/
 build/
 */build/
-!gradle/wrapper/gradle-wrapper.jar
 
 # Java / Kotlin
 *.class
@@ -11,6 +10,8 @@ build/
 *.ear
 *.nar
 *.log
+# Keep the Gradle Wrapper JAR committed. The wrapper script needs this file in CI.
+!gradle/wrapper/gradle-wrapper.jar
 hs_err_pid*
 replay_pid*
 
