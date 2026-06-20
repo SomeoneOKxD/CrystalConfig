@@ -15,3 +15,15 @@ subprojects {
         options.release = 17
     }
 }
+
+tasks.register('buildModWithSources') {
+    group = 'build'
+    description = 'Builds the :minecraft-mod:shadowJar output and the combined sources jar for CrystalConfig.'
+    dependsOn ':minecraft-mod:shadowJar', ':minecraft-mod:sourcesJar'
+}
+
+tasks.register('publishModToMavenLocal') {
+    group = 'publishing'
+    description = 'Publishes the :minecraft-mod:shadowJar output and sources jar to Maven Local.'
+    dependsOn ':minecraft-mod:publishToMavenLocal'
+}

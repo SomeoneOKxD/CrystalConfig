@@ -1,0 +1,45 @@
+name: Build CrystalConfig mod
+
+on:
+  push:
+    branches: ["main", "master"]
+    tags: ["v*", "*.*.*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-mod:
+    name: Build shadowJar and sources
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Build mod jar and sources jar
+        run: ./gradlew --no-daemon buildModWithSources --stacktrace
+
+      - name: Upload mod and sources
+        uses: actions/upload-artifact@v4
+        with:
+          name: crystal-config-mod-and-sources
+          if-no-files-found: error
+          path: |
+            minecraft-mod/build/libs/*.jar
+            !minecraft-mod/build/libs/*-dev.jar
+            !minecraft-mod/build/libs/*-javadoc.jar

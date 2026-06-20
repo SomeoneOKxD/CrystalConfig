@@ -10,7 +10,13 @@ description: CrystalConfig developer wiki overview.
   <p><strong>CrystalConfig</strong> is a modern client-side config UI library for Minecraft mods. Use it when your mod needs polished config screens, persisted settings, searchable categories, custom rows, theming, and Minecraft-specific controls such as a sound picker.</p>
 </div>
 
-This wiki is for developers adding CrystalConfig to their own mod. It covers dependency setup, two complete integration paths, persistence, widgets, themes, custom options, and the Fabric screen wrapper.
+This wiki is for developers adding CrystalConfig to their own mod. It covers the official JitPack dependency, Fabric metadata, integration patterns, persistence, widgets, themes, custom options, and the Fabric screen wrapper.
+
+CrystalConfig should be consumed from the official repository only:
+
+```text
+https://github.com/SomeoneOKxD/CrystalConfig
+```
 
 <div class="grid">
   <div class="tile">
@@ -70,8 +76,9 @@ import dev.someoneok.crystalconfig.models.SoundSetting;
 
 ## Recommended reading order
 
-1. [Add CrystalConfig to your mod]({{ '/pages/install/' | relative_url }})
-2. Pick [AutoConfig setup]({{ '/pages/autoconfig/' | relative_url }}) or [Non-AutoConfig setup]({{ '/pages/manual/' | relative_url }})
-3. Wire the result into Minecraft with [Opening screens]({{ '/pages/opening-screens/' | relative_url }})
-4. Add [Persistence]({{ '/pages/persistence/' | relative_url }}) and [Themes & UI settings]({{ '/pages/ui-settings/' | relative_url }})
-5. Use the [Widget reference]({{ '/pages/widgets/' | relative_url }}) for individual option types
+1. [Add CrystalConfig to your mod]({{ '/pages/install/' | relative_url }}) from the official JitPack artifact
+2. Review [JitPack artifact details]({{ '/pages/distribution/' | relative_url }}) to understand the published jar and sources jar
+3. Pick [AutoConfig setup]({{ '/pages/autoconfig/' | relative_url }}) or [Non-AutoConfig setup]({{ '/pages/manual/' | relative_url }})
+4. Wire the result into Minecraft with [Opening screens]({{ '/pages/opening-screens/' | relative_url }})
+5. Add [Persistence]({{ '/pages/persistence/' | relative_url }}) and [Themes & UI settings]({{ '/pages/ui-settings/' | relative_url }})
+6. Use the [Widget reference]({{ '/pages/widgets/' | relative_url }}) for individual option types

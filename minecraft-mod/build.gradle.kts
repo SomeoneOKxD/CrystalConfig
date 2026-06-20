@@ -6,12 +6,17 @@ plugins {
     `maven-publish`
 }
 
-group = property("maven_group") as String
 val modVersion = property("mod_version") as String
 val minecraftVersion = property("minecraft_version") as String
 val baseName = property("archives_base_name") as String
 val jarVersion = "$modVersion+mc$minecraftVersion"
-version = modVersion
+
+val isJitPack = System.getenv("JITPACK").equals("true", ignoreCase = true)
+val jitPackVersion = System.getenv("VERSION")
+val officialJitPackGroup = "com.github.SomeoneOKxD.CrystalConfig"
+
+group = if (isJitPack) officialJitPackGroup else property("maven_group") as String
+version = if (isJitPack && !jitPackVersion.isNullOrBlank()) jitPackVersion else modVersion
 
 val bridge = project(":bridge-minecraft")
 val core = project(":core")
@@ -144,6 +149,7 @@ tasks {
     compileJava {
         sourceCompatibility = "25"
         targetCompatibility = "25"
+        options.release.set(25)
         options.encoding = "UTF-8"
         options.compilerArgs.addAll(listOf("-Xlint:deprecation", "-Xlint:unchecked"))
     }
@@ -151,6 +157,10 @@ tasks {
     withType<Jar>().configureEach {
         archiveBaseName.set(baseName)
         archiveVersion.set(jarVersion)
+    }
+
+    named<Jar>("jar") {
+        archiveClassifier.set("dev")
     }
 
     named<ShadowJar>("shadowJar") {
@@ -161,8 +171,12 @@ tasks {
         mergeServiceFiles()
     }
 
+    assemble {
+        dependsOn(named("shadowJar"), named("sourcesJar"))
+    }
+
     build {
-        dependsOn(named("shadowJar"))
+        dependsOn(named("shadowJar"), named("sourcesJar"))
     }
 
     named<Jar>("sourcesJar") {
@@ -184,10 +198,10 @@ publishing {
 
             artifact(tasks.named("shadowJar"))
             artifact(tasks.named("sourcesJar"))
-            artifact(tasks.named("javadocJar"))
 
             pom {
-                name.set(baseName)
+                name.set("CrystalConfig")
+                description.set("A modern Fabric configuration UI library for Minecraft mods, published as the shaded Fabric mod jar.")
             }
         }
     }

@@ -1,6 +1,28 @@
 # Getting Started
 
-This guide shows the shortest path from config state to a rendered Minecraft config screen.
+This guide shows the shortest path from dependency setup to a rendered Minecraft config screen.
+
+## 0. Add CrystalConfig
+
+CrystalConfig should be consumed only from the official repository:
+
+```text
+https://github.com/SomeoneOKxD/CrystalConfig
+```
+
+Add JitPack to the consuming build, then depend on the official `crystal-config` artifact:
+
+```kotlin
+repositories {
+    maven("https://jitpack.io")
+}
+
+dependencies {
+    modImplementation("com.github.SomeoneOKxD.CrystalConfig:crystal-config:<version>")
+}
+```
+
+Replace `<version>` with an official release tag from the repository. Do not consume CrystalConfig from forked repositories, mirrored repositories, alternate Maven repositories, or alternate JitPack coordinates. For the official artifact details, see [Official Distribution](DISTRIBUTION.md).
 
 ## 1. Define config state
 

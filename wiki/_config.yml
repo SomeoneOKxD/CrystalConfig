@@ -1,5 +1,5 @@
 title: CrystalConfig Wiki
-description: Developer guide for adding CrystalConfig to Fabric Minecraft mods.
+description: Developer guide for adding CrystalConfig to Fabric Minecraft mods using the official JitPack artifact.
 lang: en
 markdown: kramdown
 highlighter: rouge

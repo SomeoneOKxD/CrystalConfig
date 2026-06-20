@@ -1,6 +1,6 @@
 # Minecraft Backend Checklist
 
-Use this checklist when implementing a Fabric, Forge, or NeoForge adapter for the core UI.
+Use this checklist when implementing or updating a Minecraft adapter for the core UI.
 
 ## Required adapter methods
 

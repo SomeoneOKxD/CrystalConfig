@@ -24,8 +24,8 @@ The reusable UI framework lives in `core`. Minecraft-specific rendering, input i
 | `core` | Reusable UI components, layout, state, annotations, themes, draw commands, and JSON persistence. Contains no Minecraft imports. |
 | `bridge-minecraft` | Loader/version-neutral interfaces for Minecraft render and input backends. |
 | `minecraft-mod` | Fabric client module, Minecraft renderer backend, MSDF text renderer, shaders, and Minecraft-only widgets. |
-| `docs` | Developer documentation for the APIs and integration points. |
-| `wiki` | GitHub Pages documentation source. |
+| `docs` | Source-maintainer notes and API references for working on this repository. |
+| `wiki` | GitHub Pages developer guide for using CrystalConfig from another mod. |
 
 ## Requirements
 
@@ -44,13 +44,45 @@ maven_group=dev.someoneok
 archives_base_name=crystal-config
 ```
 
+## Use from another mod
+
+CrystalConfig is only distributed from the official repository:
+
+```text
+https://github.com/SomeoneOKxD/CrystalConfig
+```
+
+Use JitPack with the official coordinates:
+
+```kotlin
+repositories {
+    maven("https://jitpack.io")
+}
+
+dependencies {
+    modImplementation("com.github.SomeoneOKxD.CrystalConfig:crystal-config:<version>")
+}
+```
+
+Replace `<version>` with an official CrystalConfig release tag from the repository. Do not use forked repositories, mirrored repositories, alternate Maven repositories, or alternate JitPack coordinates.
+
+When CrystalConfig is a separate runtime dependency, also add `crystalconfig` to your mod's `fabric.mod.json` dependencies. See [Official Distribution](docs/DISTRIBUTION.md) for the official artifact details.
+
 ## Build
+
+Build the distributable mod jar and combined sources jar:
+
+```bash
+./gradlew buildModWithSources
+```
+
+The outputs are written to `minecraft-mod/build/libs/`. The main jar is produced by `:minecraft-mod:shadowJar`; `*-dev.jar` is the plain unshaded development jar.
+
+A full Gradle build is still available when you want every standard verification task:
 
 ```bash
 ./gradlew build
 ```
-
-The Fabric module produces a shaded `crystal-config` jar containing `core` and `bridge-minecraft`.
 
 To generate MSDF font atlases from local TTF files:
 
@@ -119,7 +151,8 @@ public static final MutableState<SoundSetting> alertSound =
 
 ## Documentation
 
-- [Getting Started](docs/GETTING_STARTED.md) — shortest path from state to a rendered config screen
+- [Getting Started](docs/GETTING_STARTED.md) — shortest path from dependency setup to a rendered config screen
+- [Official Distribution](docs/DISTRIBUTION.md) — official JitPack coordinates, CI artifacts, and release build details
 - [Architecture](docs/ARCHITECTURE.md) — module boundaries, render lifecycle, and input lifecycle
 - [Annotation API](docs/ANNOTATION_API.md) — supported AutoConfig annotations
 - [Config System Guide](docs/CONFIG_SYSTEM_GUIDE.md) — config state and persistence model

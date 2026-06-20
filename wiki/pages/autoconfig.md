@@ -270,8 +270,8 @@ import dev.someoneok.crystalconfig.icons.MediaBrandIcons;
 @ConfigFooterIcon(
         icon = MediaBrandIcons.GITHUB,
         action = ConfigFooterIconAction.OPEN_URL,
-        value = "https://github.com/example/mymod",
-        tooltip = "GitHub"
+        value = "https://example.com/mymod",
+        tooltip = "Project page"
 )
 public static final ConfigMarker github = ConfigMarker.marker();
 ```

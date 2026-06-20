@@ -1,18 +1,20 @@
 ---
 layout: default
-title: Using core elsewhere
-description: Using CrystalConfig's core UI outside the included Fabric backend.
+title: Advanced adapters
+description: Advanced notes for hosting CrystalConfig core UI outside the included Fabric screen wrapper.
 ---
 
-# Using core elsewhere
+# Advanced adapters
 
-Most mod developers should use the included Fabric `ConfigScreen`. This page is for developers who want to reuse CrystalConfig's core UI with another Minecraft screen backend or a custom renderer.
+Most mod developers should use the included Fabric `ConfigScreen`. This page is for advanced integrations that need to host CrystalConfig's core UI with another Minecraft screen backend or a custom renderer.
+
+This is not a distribution path. CrystalConfig should still be consumed from the official `SomeoneOKxD/CrystalConfig` artifact.
 
 ## Module roles
 
 | Module | Role |
 |---|---|
-| `core` | Components, layout, state, annotations, builders, themes, draw commands, and `GsonConfigStore`. It does not import Minecraft classes. |
+| `core` | Renderer-neutral components, layout, state, AutoConfig, persistence, themes, and draw commands. |
 | `bridge-minecraft` | Small adapter surface for Minecraft integrations. |
 | `minecraft-mod` | Fabric client screen, render backend, MSDF text renderer, assets, and Minecraft-only widgets. |
 | `wiki` | This GitHub Pages developer wiki. |
@@ -80,7 +82,7 @@ Components submit renderer-neutral draw commands. Your backend translates them t
 | `TextCommand` | Text rendering using your text renderer. |
 | `setClip` / `clearClip` | Scissor/clipping support. |
 
-## Porting rule
+## Adapter rule
 
 Keep config classes, state objects, `AutoConfig`, `ConfigScreenBuilder`, and persistence unchanged. Replace only the adapter and render backend that translate draw commands into the target Minecraft version or loader.
 

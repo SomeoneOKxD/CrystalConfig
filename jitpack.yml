@@ -1,0 +1,17 @@
+before_install:
+  - chmod +x gradlew
+  - |
+    set -e
+    JAVA_25_VERSION="$(sdk list java | awk '/25\..*-tem/ && $NF ~ /25\..*-tem/ { print $NF; exit }')"
+    if [ -z "$JAVA_25_VERSION" ]; then
+      JAVA_25_VERSION="$(sdk list java | awk '/25\..*-open/ && $NF ~ /25\..*-open/ { print $NF; exit }')"
+    fi
+    if [ -z "$JAVA_25_VERSION" ]; then
+      JAVA_25_VERSION="25-open"
+    fi
+    sdk install java "$JAVA_25_VERSION" || true
+    sdk default java "$JAVA_25_VERSION"
+    java -version
+
+install:
+  - ./gradlew --no-daemon :minecraft-mod:publishToMavenLocal --stacktrace

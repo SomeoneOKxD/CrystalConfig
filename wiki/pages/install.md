@@ -1,47 +1,48 @@
 ---
 layout: default
 title: Add CrystalConfig to your mod
-description: Dependency and Fabric metadata setup for using CrystalConfig from another mod.
+description: Official JitPack dependency and Fabric metadata setup for using CrystalConfig from another mod.
 ---
 
 # Add CrystalConfig to your mod
 
-CrystalConfig is exposed as a Fabric client mod with id `crystalconfig`. The published Maven coordinates used by this project are:
+CrystalConfig is exposed as a Fabric client mod with id `crystalconfig`.
+
+Use the official repository only:
 
 ```text
-group:    dev.someoneok
-artifact: crystal-config
-version:  1.0
+https://github.com/SomeoneOKxD/CrystalConfig
 ```
+
+The official JitPack coordinate is:
+
+```text
+com.github.SomeoneOKxD.CrystalConfig:crystal-config:<version>
+```
+
+Replace `<version>` with an official release tag from `SomeoneOKxD/CrystalConfig`. Do not use forked repositories, mirrored repositories, alternate Maven repositories, or alternate JitPack coordinates.
 
 The mod metadata in this project targets Minecraft `26.1` and Fabric Loader `0.18.5` or newer.
 
 ## Gradle dependency
 
-Add the Maven repository that hosts CrystalConfig and depend on the Fabric mod artifact:
+Add JitPack after your normal Fabric/Maven repositories:
 
 ```kotlin
 repositories {
-    maven("https://your.maven.repository/releases")
-}
-
-dependencies {
-    modImplementation("dev.someoneok:crystal-config:1.0")
+    maven("https://maven.fabricmc.net/")
+    mavenCentral()
+    maven("https://jitpack.io")
 }
 ```
 
-If you intentionally want to bundle the library into your mod distribution instead of requiring users to install CrystalConfig separately, use Loom's `include` pattern:
+Depend on the official Fabric mod artifact:
 
 ```kotlin
 dependencies {
-    modImplementation("dev.someoneok:crystal-config:1.0")
-    include("dev.someoneok:crystal-config:1.0")
+    modImplementation("com.github.SomeoneOKxD.CrystalConfig:crystal-config:<version>")
 }
 ```
-
-<div class="callout warning">
-  <strong>Choose one distribution model.</strong> If CrystalConfig is a separate required mod, keep only <code>modImplementation</code> and declare it in <code>fabric.mod.json</code>. If you bundle it, make sure your release process and license expectations match that choice.
-</div>
 
 ## Fabric metadata
 
@@ -78,6 +79,10 @@ public final class MyModClient implements ClientModInitializer {
 ```
 
 The `crystalconfig` mod also calls `MinecraftAutoConfig.register()` from its own client initializer, but calling it from your mod is safe because registration is idempotent.
+
+## Sources in IDEs
+
+The official JitPack publication attaches a combined sources jar containing `minecraft-mod`, `core`, and `bridge-minecraft` sources. Gradle-aware IDEs can use that sources jar for navigation when dependency sources are downloaded.
 
 ## What to import
 

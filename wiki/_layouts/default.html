@@ -9,30 +9,64 @@
 </head>
 <body>
   <a class="skip-link" href="#content">Skip to content</a>
-  <div class="shell">
-    <aside class="sidebar" aria-label="Wiki navigation">
-      <a class="brand" href="{{ '/' | relative_url }}">
-        <span class="brand-mark">CC</span>
-        <span>
-          <strong>CrystalConfig</strong>
-          <small>Developer Wiki</small>
-        </span>
-      </a>
 
-      <nav>
-        <a href="{{ '/' | relative_url }}" {% if page.url == '/' %}aria-current="page"{% endif %}>Overview</a>
-        <a href="{{ '/pages/install/' | relative_url }}" {% if page.url contains '/pages/install/' %}aria-current="page"{% endif %}>Add to your mod</a>
-        <a href="{{ '/pages/autoconfig/' | relative_url }}" {% if page.url contains '/pages/autoconfig/' %}aria-current="page"{% endif %}>AutoConfig setup</a>
-        <a href="{{ '/pages/manual/' | relative_url }}" {% if page.url contains '/pages/manual/' %}aria-current="page"{% endif %}>Non-AutoConfig setup</a>
-        <a href="{{ '/pages/opening-screens/' | relative_url }}" {% if page.url contains '/pages/opening-screens/' %}aria-current="page"{% endif %}>Opening screens</a>
-        <a href="{{ '/pages/persistence/' | relative_url }}" {% if page.url contains '/pages/persistence/' %}aria-current="page"{% endif %}>Persistence</a>
-        <a href="{{ '/pages/widgets/' | relative_url }}" {% if page.url contains '/pages/widgets/' %}aria-current="page"{% endif %}>Widgets</a>
-        <a href="{{ '/pages/ui-settings/' | relative_url }}" {% if page.url contains '/pages/ui-settings/' %}aria-current="page"{% endif %}>Themes & UI settings</a>
-        <a href="{{ '/pages/custom-options/' | relative_url }}" {% if page.url contains '/pages/custom-options/' %}aria-current="page"{% endif %}>Custom options</a>
-        <a href="{{ '/pages/sound/' | relative_url }}" {% if page.url contains '/pages/sound/' %}aria-current="page"{% endif %}>Minecraft sound picker</a>
-        <a href="{{ '/pages/text-formatting/' | relative_url }}" {% if page.url contains '/pages/text-formatting/' %}aria-current="page"{% endif %}>Text formatting</a>
-        <a href="{{ '/pages/porting/' | relative_url }}" {% if page.url contains '/pages/porting/' %}aria-current="page"{% endif %}>Using core elsewhere</a>
-      </nav>
+  <header class="topbar" aria-label="Site header">
+    <a class="topbar-brand" href="{{ '/' | relative_url }}">
+      <span class="brand-mark">CC</span>
+      <span>
+        <strong>CrystalConfig</strong>
+        <small>Developer Wiki</small>
+      </span>
+    </a>
+
+    <form class="site-search" role="search" data-search-index="{{ '/search.json' | relative_url }}" autocomplete="off">
+      <label class="sr-only" for="wiki-search-input">Search documentation</label>
+      <div class="search-input-wrap">
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input id="wiki-search-input" type="search" placeholder="Search docs" aria-label="Search documentation" aria-controls="wiki-search-results" aria-expanded="false">
+        <kbd class="search-shortcut">Ctrl K</kbd>
+      </div>
+      <div id="wiki-search-results" class="search-results" role="listbox" aria-label="Search results" hidden></div>
+    </form>
+
+    <nav class="topbar-nav" aria-label="Primary navigation">
+      <a href="{{ '/' | relative_url }}" {% if page.url == '/' %}aria-current="page"{% endif %}>Home</a>
+      <a href="{{ '/pages/install/' | relative_url }}" {% if page.url contains '/pages/install/' %}aria-current="page"{% endif %}>Install</a>
+      <a href="{{ '/pages/distribution/' | relative_url }}" {% if page.url contains '/pages/distribution/' %}aria-current="page"{% endif %}>JitPack</a>
+    </nav>
+  </header>
+
+  <div class="wiki-layout">
+    <aside class="sidebar" aria-label="Wiki navigation">
+      <div class="sidebar-scroll">
+        <nav class="side-nav" aria-label="Documentation sections">
+          <a class="side-home" href="{{ '/' | relative_url }}" {% if page.url == '/' %}aria-current="page"{% endif %}>Overview</a>
+
+          <section class="nav-section" aria-labelledby="nav-getting-started">
+            <h2 id="nav-getting-started">Getting started</h2>
+            <a href="{{ '/pages/install/' | relative_url }}" {% if page.url contains '/pages/install/' %}aria-current="page"{% endif %}>Install</a>
+            <a href="{{ '/pages/distribution/' | relative_url }}" {% if page.url contains '/pages/distribution/' %}aria-current="page"{% endif %}>JitPack</a>
+          </section>
+
+          <section class="nav-section" aria-labelledby="nav-integration">
+            <h2 id="nav-integration">Integration</h2>
+            <a href="{{ '/pages/autoconfig/' | relative_url }}" {% if page.url contains '/pages/autoconfig/' %}aria-current="page"{% endif %}>AutoConfig setup</a>
+            <a href="{{ '/pages/manual/' | relative_url }}" {% if page.url contains '/pages/manual/' %}aria-current="page"{% endif %}>Non-AutoConfig setup</a>
+            <a href="{{ '/pages/opening-screens/' | relative_url }}" {% if page.url contains '/pages/opening-screens/' %}aria-current="page"{% endif %}>Opening screens</a>
+            <a href="{{ '/pages/persistence/' | relative_url }}" {% if page.url contains '/pages/persistence/' %}aria-current="page"{% endif %}>Persistence</a>
+          </section>
+
+          <section class="nav-section" aria-labelledby="nav-reference">
+            <h2 id="nav-reference">Reference</h2>
+            <a href="{{ '/pages/widgets/' | relative_url }}" {% if page.url contains '/pages/widgets/' %}aria-current="page"{% endif %}>Widgets</a>
+            <a href="{{ '/pages/ui-settings/' | relative_url }}" {% if page.url contains '/pages/ui-settings/' %}aria-current="page"{% endif %}>Themes & UI settings</a>
+            <a href="{{ '/pages/custom-options/' | relative_url }}" {% if page.url contains '/pages/custom-options/' %}aria-current="page"{% endif %}>Custom options</a>
+            <a href="{{ '/pages/sound/' | relative_url }}" {% if page.url contains '/pages/sound/' %}aria-current="page"{% endif %}>Minecraft sound picker</a>
+            <a href="{{ '/pages/text-formatting/' | relative_url }}" {% if page.url contains '/pages/text-formatting/' %}aria-current="page"{% endif %}>Text formatting</a>
+            <a href="{{ '/pages/porting/' | relative_url }}" {% if page.url contains '/pages/porting/' %}aria-current="page"{% endif %}>Advanced adapters</a>
+          </section>
+        </nav>
+      </div>
     </aside>
 
     <main id="content" class="content">
@@ -41,5 +75,7 @@
       </article>
     </main>
   </div>
+
+  <script src="{{ '/assets/js/search.js' | relative_url }}" defer></script>
 </body>
 </html>
