@@ -13,7 +13,7 @@
   overflow: hidden;
 }
 
-.highlighter-rouge {
+div.highlighter-rouge {
   position: relative;
 }
 
@@ -133,8 +133,9 @@ pre.highlight code {
 .highlight .w { color: #6e7681; }
 .highlight .gl { text-decoration: underline; }
 
-/* Optional language badge, shown when Jekyll emits language-* wrappers. */
-.highlighter-rouge[class*="language-"]::before {
+/* Optional language badge, shown only for block code wrappers.
+ * Inline code can also receive language-* / highlighter-rouge classes, so these selectors are intentionally restricted to div.highlighter-rouge. */
+div.highlighter-rouge[class*="language-"]::before {
   position: absolute;
   top: 0.55rem;
   right: 0.75rem;
@@ -151,16 +152,16 @@ pre.highlight code {
   text-transform: uppercase;
 }
 
-.language-java.highlighter-rouge::before { content: "java"; }
-.language-kotlin.highlighter-rouge::before { content: "kotlin"; }
-.language-json.highlighter-rouge::before { content: "json"; }
-.language-xml.highlighter-rouge::before { content: "xml"; }
-.language-yaml.highlighter-rouge::before,
-.language-yml.highlighter-rouge::before { content: "yaml"; }
-.language-bash.highlighter-rouge::before,
-.language-shell.highlighter-rouge::before,
-.language-sh.highlighter-rouge::before { content: "shell"; }
-.language-gradle.highlighter-rouge::before { content: "gradle"; }
-.language-properties.highlighter-rouge::before { content: "properties"; }
-.language-text.highlighter-rouge::before,
-.language-plaintext.highlighter-rouge::before { content: "text"; }
+div.language-java.highlighter-rouge::before { content: "java"; }
+div.language-kotlin.highlighter-rouge::before { content: "kotlin"; }
+div.language-json.highlighter-rouge::before { content: "json"; }
+div.language-xml.highlighter-rouge::before { content: "xml"; }
+div.language-yaml.highlighter-rouge::before,
+div.language-yml.highlighter-rouge::before { content: "yaml"; }
+div.language-bash.highlighter-rouge::before,
+div.language-shell.highlighter-rouge::before,
+div.language-sh.highlighter-rouge::before { content: "shell"; }
+div.language-gradle.highlighter-rouge::before { content: "gradle"; }
+div.language-properties.highlighter-rouge::before { content: "properties"; }
+div.language-text.highlighter-rouge::before,
+div.language-plaintext.highlighter-rouge::before { content: "text"; }
