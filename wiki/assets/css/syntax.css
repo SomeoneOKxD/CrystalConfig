@@ -1,0 +1,166 @@
+/*
+ * Rouge syntax highlighting for the CrystalConfig wiki.
+ * GitHub Pages/Jekyll emits blocks like:
+ *   <div class="language-java highlighter-rouge"><div class="highlight"><pre ...><code>...</code></pre></div></div>
+ */
+
+.highlight {
+  margin: 1rem 0;
+  border: 1px solid rgba(48, 58, 77, 0.92);
+  border-radius: 1rem;
+  background: #0d1117;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035), 0 18px 45px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+}
+
+.highlighter-rouge {
+  position: relative;
+}
+
+.highlighter-rouge .highlight {
+  margin: 1rem 0;
+}
+
+.highlight pre,
+pre.highlight {
+  margin: 0;
+  overflow-x: auto;
+  border: 0;
+  border-radius: 0;
+  background: #0d1117;
+  padding: 1rem 1.1rem;
+  color: #c9d1d9;
+  scrollbar-color: rgba(139, 148, 158, 0.55) transparent;
+}
+
+.highlight code,
+pre.highlight code {
+  display: block;
+  min-width: max-content;
+  background: transparent;
+  color: inherit;
+  border: 0;
+  padding: 0;
+  border-radius: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  tab-size: 2;
+}
+
+/* Inline code outside highlighted blocks. */
+:not(pre) > code {
+  border: 1px solid rgba(48, 58, 77, 0.76);
+  background: rgba(110, 118, 129, 0.18);
+  color: #e6edf3;
+  padding: 0.12rem 0.36rem;
+  border-radius: 0.38rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.9em;
+}
+
+/* Rouge token colors, tuned for a GitHub-dark style. */
+.highlight .hll { background-color: #161b22; }
+.highlight .c,
+.highlight .cm,
+.highlight .cp,
+.highlight .c1,
+.highlight .cs,
+.highlight .ch,
+.highlight .cd { color: #8b949e; font-style: italic; }
+.highlight .err { color: #f85149; }
+.highlight .k,
+.highlight .kc,
+.highlight .kd,
+.highlight .kn,
+.highlight .kp,
+.highlight .kr,
+.highlight .kt,
+.highlight .kv { color: #ff7b72; }
+.highlight .o,
+.highlight .ow { color: #ff7b72; }
+.highlight .p { color: #c9d1d9; }
+.highlight .n,
+.highlight .na,
+.highlight .nb,
+.highlight .bp,
+.highlight .nc,
+.highlight .nd,
+.highlight .ne,
+.highlight .ni,
+.highlight .nl,
+.highlight .nn,
+.highlight .nx,
+.highlight .py,
+.highlight .nt,
+.highlight .vc,
+.highlight .vg,
+.highlight .vi,
+.highlight .nv,
+.highlight .vm { color: #c9d1d9; }
+.highlight .nf,
+.highlight .fm { color: #d2a8ff; }
+.highlight .no,
+.highlight .nd { color: #79c0ff; }
+.highlight .s,
+.highlight .sa,
+.highlight .sb,
+.highlight .sc,
+.highlight .dl,
+.highlight .sd,
+.highlight .s2,
+.highlight .se,
+.highlight .sh,
+.highlight .si,
+.highlight .sx,
+.highlight .sr,
+.highlight .s1,
+.highlight .ss { color: #a5d6ff; }
+.highlight .m,
+.highlight .mb,
+.highlight .mf,
+.highlight .mh,
+.highlight .mi,
+.highlight .il,
+.highlight .mo,
+.highlight .mx { color: #79c0ff; }
+.highlight .gh,
+.highlight .gu { color: #79c0ff; font-weight: 700; }
+.highlight .gd { color: #ffdcd7; background-color: rgba(248, 81, 73, 0.15); }
+.highlight .gi { color: #aff5b4; background-color: rgba(46, 160, 67, 0.15); }
+.highlight .ge { font-style: italic; }
+.highlight .gs { font-weight: 700; }
+.highlight .w { color: #6e7681; }
+.highlight .gl { text-decoration: underline; }
+
+/* Optional language badge, shown when Jekyll emits language-* wrappers. */
+.highlighter-rouge[class*="language-"]::before {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.75rem;
+  z-index: 1;
+  border: 1px solid rgba(48, 58, 77, 0.78);
+  border-radius: 999px;
+  background: rgba(13, 17, 23, 0.85);
+  color: #8b949e;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  padding: 0.28rem 0.48rem;
+  text-transform: uppercase;
+}
+
+.language-java.highlighter-rouge::before { content: "java"; }
+.language-kotlin.highlighter-rouge::before { content: "kotlin"; }
+.language-json.highlighter-rouge::before { content: "json"; }
+.language-xml.highlighter-rouge::before { content: "xml"; }
+.language-yaml.highlighter-rouge::before,
+.language-yml.highlighter-rouge::before { content: "yaml"; }
+.language-bash.highlighter-rouge::before,
+.language-shell.highlighter-rouge::before,
+.language-sh.highlighter-rouge::before { content: "shell"; }
+.language-gradle.highlighter-rouge::before { content: "gradle"; }
+.language-properties.highlighter-rouge::before { content: "properties"; }
+.language-text.highlighter-rouge::before,
+.language-plaintext.highlighter-rouge::before { content: "text"; }
