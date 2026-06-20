@@ -17,7 +17,7 @@ https://github.com/SomeoneOKxD/CrystalConfig
 The official JitPack coordinate is:
 
 ```text
-com.github.SomeoneOKxD.CrystalConfig:crystal-config:<version>
+com.github.SomeoneOKxD:CrystalConfig:<version>
 ```
 
 Replace `<version>` with an official release tag from `SomeoneOKxD/CrystalConfig`, for example `v1.0-mc26.1`. Do not use forked repositories, mirrored repositories, alternate Maven repositories, or alternate JitPack coordinates.
@@ -40,7 +40,7 @@ Depend on the official Fabric mod artifact:
 
 ```kotlin
 dependencies {
-    modImplementation("com.github.SomeoneOKxD.CrystalConfig:crystal-config:<version>")
+    modImplementation("com.github.SomeoneOKxD:CrystalConfig:<version>")
 }
 ```
 

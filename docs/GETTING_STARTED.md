@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-    modImplementation("com.github.SomeoneOKxD.CrystalConfig:crystal-config:<version>")
+    modImplementation("com.github.SomeoneOKxD:CrystalConfig:<version>")
 }
 ```
 

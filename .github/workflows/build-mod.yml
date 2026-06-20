@@ -133,7 +133,7 @@ jobs:
           JitPack dependency version:
 
           \`\`\`kotlin
-          modImplementation("com.github.SomeoneOKxD.CrystalConfig:crystal-config:${RELEASE_TAG}")
+          modImplementation("com.github.SomeoneOKxD:CrystalConfig:${RELEASE_TAG}")
           \`\`\`
 
           Built from:

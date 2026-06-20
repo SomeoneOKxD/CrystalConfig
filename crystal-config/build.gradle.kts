@@ -13,7 +13,8 @@ val jarVersion = "$modVersion-mc$minecraftVersion"
 
 val isJitPack = System.getenv("JITPACK").equals("true", ignoreCase = true)
 val jitPackVersion = System.getenv("VERSION")
-val officialJitPackGroup = "com.github.SomeoneOKxD.CrystalConfig"
+val officialJitPackGroup = "com.github.SomeoneOKxD"
+val officialJitPackArtifact = "CrystalConfig"
 
 group = if (isJitPack) officialJitPackGroup else property("maven_group") as String
 version = if (isJitPack && !jitPackVersion.isNullOrBlank()) jitPackVersion else modVersion
@@ -184,7 +185,7 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             groupId = project.group.toString()
-            artifactId = baseName
+            artifactId = if (isJitPack) officialJitPackArtifact else baseName
             version = project.version.toString()
 
             artifact(tasks.named("shadowJar"))

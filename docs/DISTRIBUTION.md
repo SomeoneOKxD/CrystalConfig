@@ -22,7 +22,7 @@ Depend on the official CrystalConfig artifact:
 
 ```kotlin
 dependencies {
-    modImplementation("com.github.SomeoneOKxD.CrystalConfig:crystal-config:<version>")
+    modImplementation("com.github.SomeoneOKxD:CrystalConfig:<version>")
 }
 ```
 
@@ -72,7 +72,7 @@ The root `jitpack.yml` prepares Java 25 and runs:
 The `crystal-config` Maven publication attaches `shadowJar` as the main artifact and the combined sources jar as the sources artifact. On JitPack, the public coordinate uses the JitPack multi-module format, where the artifact id is the Gradle module name:
 
 ```text
-com.github.SomeoneOKxD.CrystalConfig:crystal-config:<version>
+com.github.SomeoneOKxD:CrystalConfig:<version>
 ```
 
 On pushes to `main` or `master`, the workflow creates an official annotated tag and GitHub release when that version tag does not already exist. The tag format is `v<mod_version>-mc<minecraft_version>`, for example `v1.0-mc26.1`. This lets the same `mod_version` be published for multiple Minecraft versions. Only official tags from `SomeoneOKxD/CrystalConfig` should be used for public releases.
