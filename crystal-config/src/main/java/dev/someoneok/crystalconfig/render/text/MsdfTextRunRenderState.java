@@ -24,7 +24,7 @@ public record MsdfTextRunRenderState(
         @Nullable ScreenRectangle scissorArea,
         @Nullable ScreenRectangle bounds
 ) implements GuiElementRenderState {
-    private static final Map<Identifier, TextureSetup> TEXTURE_SETUPS = new HashMap<>(4);
+    private static final Map<Identifier, CachedTextureSetup> TEXTURE_SETUPS = new HashMap<>(4);
 
     public MsdfTextRunRenderState(
             Matrix3x2f pose,
@@ -42,14 +42,23 @@ public record MsdfTextRunRenderState(
 
     @Override
     public TextureSetup textureSetup() {
-        return TEXTURE_SETUPS.computeIfAbsent(texture, id -> {
-            var tex = Minecraft.getInstance().getTextureManager().getTexture(id);
-            return TextureSetup.singleTexture(
-                    tex.getTextureView(),
-                    RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR)
-            );
-        });
+        var tex = Minecraft.getInstance().getTextureManager().getTexture(texture);
+        var textureView = tex.getTextureView();
+
+        CachedTextureSetup cached = TEXTURE_SETUPS.get(texture);
+        if (cached != null && cached.textureView() == textureView) {
+            return cached.textureSetup();
+        }
+
+        TextureSetup setup = TextureSetup.singleTexture(
+                textureView,
+                RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR)
+        );
+        TEXTURE_SETUPS.put(texture, new CachedTextureSetup(textureView, setup));
+        return setup;
     }
+
+    private record CachedTextureSetup(Object textureView, TextureSetup textureSetup) {}
 
     @Override
     public void buildVertices(VertexConsumer vertices) {
