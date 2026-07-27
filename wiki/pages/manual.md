@@ -163,7 +163,7 @@ public final class MyModManualScreenFactory {
                                 "Runtime behavior preset."
                         ))
                 .section("Controls", section -> section
-                        .keybind("Open menu", MyModConfig.openMenu, "Key used to open this mod's menu.", true)
+                        .keybind("Open menu", MyModConfig.openMenu, "Key used to open this mod's menu.", true, false)
                         .multiSelectDropdown(
                                 "Enabled modules",
                                 MyModConfig.enabledModules,
@@ -177,6 +177,9 @@ public final class MyModManualScreenFactory {
     }
 }
 ```
+
+The final two arguments are `disallowNone` and `allowMouseButtons`. Mouse buttons are allowed by default in the shorter overload.
+
 
 ## 4. Open the Fabric screen
 

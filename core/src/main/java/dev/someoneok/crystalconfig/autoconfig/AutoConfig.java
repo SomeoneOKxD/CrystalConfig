@@ -5,6 +5,7 @@ import dev.someoneok.crystalconfig.components.Keybind;
 import dev.someoneok.crystalconfig.components.TextInput;
 import dev.someoneok.crystalconfig.config.ConfigScreenBuilder;
 import dev.someoneok.crystalconfig.config.ConfigUiSettings;
+import dev.someoneok.crystalconfig.config.ProfileConfig;
 import dev.someoneok.crystalconfig.persistence.GsonConfigStore;
 import dev.someoneok.crystalconfig.render.ColorRGBA;
 import dev.someoneok.crystalconfig.state.State;
@@ -491,6 +492,31 @@ public final class AutoConfig {
         }
     }
 
+    private static final class ProfileNode implements Node {
+        private final Class<?> owner;
+        private final Field field;
+        private final ConfigProfile annotation;
+        private final int index;
+        private final String key;
+        private final ProfileConfig profiles;
+
+        private ProfileNode(Class<?> owner, Field field, ConfigProfile annotation, int index, String key, ProfileConfig profiles) {
+            this.owner = owner;
+            this.field = field;
+            this.annotation = annotation;
+            this.index = index;
+            this.key = key;
+            this.profiles = profiles;
+        }
+
+        @Override public int index() { return index; }
+        @Override public void register(GsonConfigStore store) { profiles.register(store, key); }
+        @Override public void addTo(ConfigScreenBuilder.SectionBuilder section) {
+            section.profile(annotation.label(), profiles, annotation.description());
+            applyShared(section, owner, field, "");
+        }
+    }
+
     private static final class OptionNode<T> implements Node {
         private final Class<?> owner;
         private final Field field;
@@ -517,7 +543,9 @@ public final class AutoConfig {
         }
 
         @Override public int index() { return index; }
-        @Override public void register(GsonConfigStore store) { store.register(key, state, valueType); }
+        @Override public void register(GsonConfigStore store) {
+            if (!ProfileConfig.isLinked(state)) store.register(key, state, valueType);
+        }
 
         @Override
         public void addTo(ConfigScreenBuilder.SectionBuilder section) {
@@ -546,7 +574,7 @@ public final class AutoConfig {
                 }
                 case KEYBIND -> {
                     ConfigKeybind keybind = (ConfigKeybind) spec.annotation();
-                    section.keybind(label, expect(Keybind.class), description, keybind.disallowNone());
+                    section.keybind(label, expect(Keybind.class), description, keybind.disallowNone(), keybind.allowMouseButtons());
                 }
                 case DROPDOWN -> addDropdown(section, false);
                 case SEARCHABLE_DROPDOWN -> addDropdown(section, true);
@@ -709,13 +737,15 @@ public final class AutoConfig {
             ConfigFooterButton footerButton = field.getAnnotation(ConfigFooterButton.class);
             ConfigFooterIcon footerIcon = field.getAnnotation(ConfigFooterIcon.class);
             ConfigAccordion accordion = field.getAnnotation(ConfigAccordion.class);
-            int annotationCount = count(option, info, button, custom, customOption, separator, labeledSeparator, spacer, footerButton, footerIcon, accordion);
+            ConfigProfile profile = field.getAnnotation(ConfigProfile.class);
+            int annotationCount = count(option, info, button, custom, customOption, separator, labeledSeparator, spacer, footerButton, footerIcon, accordion, profile);
             if (annotationCount == 0) continue;
             if (annotationCount > 1) throw new IllegalArgumentException("Only one config row/option annotation is allowed on " + owner.getName() + "." + field.getName());
             if (footerButton != null || footerIcon != null) continue;
             requireStatic(field, owner);
             field.setAccessible(true);
             if (option != null) out.add(optionNode(owner, field, option, keyPrefix, index[0]++));
+            else if (profile != null) out.add(profileNode(owner, field, profile, keyPrefix, index[0]++));
             else if (info != null) out.add(new InfoNode(owner, field, info, index[0]++));
             else if (button != null) out.add(new ButtonNode(owner, field, button, index[0]++));
             else if (custom != null) out.add(new CustomNode(owner, field, custom, index[0]++));
@@ -872,6 +902,20 @@ public final class AutoConfig {
             return new OptionNode(owner, field, spec, index, key, stringValue(spec.annotation(), "label"), stringValue(spec.annotation(), "description"), state, valueType, valueClass);
         } catch (IllegalAccessException e) {
             throw new IllegalStateException("Cannot read config field " + owner.getName() + "." + field.getName(), e);
+        }
+    }
+
+    private static ProfileNode profileNode(Class<?> owner, Field field, ConfigProfile annotation, String keyPrefix, int index) {
+        try {
+            Object raw = field.get(null);
+            if (!(raw instanceof ProfileConfig profiles)) {
+                throw new IllegalArgumentException("@ConfigProfile field must be a ProfileConfig: " + owner.getName() + "." + field.getName());
+            }
+            String explicitKey = annotation.key().trim();
+            String localKey = explicitKey.isBlank() ? field.getName() : explicitKey;
+            return new ProfileNode(owner, field, annotation, index, keyPrefix + "." + localKey, profiles);
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException("Cannot read profile config field " + owner.getName() + "." + field.getName(), e);
         }
     }
 
@@ -1589,7 +1633,8 @@ public final class AutoConfig {
                 ConfigSpacer.class,
                 ConfigFooterButton.class,
                 ConfigFooterIcon.class,
-                ConfigAccordion.class
+                ConfigAccordion.class,
+                ConfigProfile.class
         ));
         for (RegisteredComponent<?, ?> registered : CUSTOM_COMPONENTS.values()) annotations.add(registered.annotationType());
         return annotations;

@@ -24,6 +24,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import static dev.someoneok.crystalconfig.utils.TextUtils.ellipsize;
+
 public final class ConfigScreenBuilder {
     private final String title;
     private final ConfigUiSettings settings;
@@ -275,28 +277,6 @@ public final class ConfigScreenBuilder {
                 regular(context)
         );
         return metrics.width();
-    }
-
-    private static String ellipsize(RenderContext context, String value, float fontSize, String fontFace, float maxWidth) {
-        String text = value == null ? "" : value;
-        if (context.measureText(text, fontSize, fontFace).width() <= maxWidth) return text;
-
-        String ellipsis = "...";
-        if (context.measureText(ellipsis, fontSize, fontFace).width() > maxWidth) return "";
-
-        int lo = 0;
-        int hi = text.length();
-
-        while (lo < hi) {
-            int mid = (lo + hi + 1) >>> 1;
-            if (context.measureText(text.substring(0, mid) + ellipsis, fontSize, fontFace).width() <= maxWidth) {
-                lo = mid;
-            } else {
-                hi = mid - 1;
-            }
-        }
-
-        return text.substring(0, lo) + ellipsis;
     }
 
     private static String regular(RenderContext context) {
@@ -1813,6 +1793,11 @@ public final class ConfigScreenBuilder {
             return row(label, description, new SearchableDropdown<>(state, options).labeler(labeler).width(widgetWidth), false);
         }
 
+        /** Adds a user-editable profile selector. Only settings explicitly linked to the ProfileConfig are profile-scoped. */
+        public SectionBuilder profile(String label, ProfileConfig profiles, String description) {
+            return row(label, description, new ProfileSelector(profiles).width(widgetWidth), true);
+        }
+
         public <G extends Enum<G>, T> SectionBuilder groupedDropdown(String label, State<T> state, Map<G, ? extends Collection<T>> groupedOptions, String description) {
             return row(label, description, new GroupedDropdown<>(state, groupedOptions).width(widgetWidth), false);
         }
@@ -1874,7 +1859,14 @@ public final class ConfigScreenBuilder {
         }
 
         public SectionBuilder keybind(String label, State<Keybind> state, String description, boolean disallowNone) {
-            return row(label, description, new KeybindSelector(state).disallowNone(disallowNone).width(widgetWidth), false);
+            return keybind(label, state, description, disallowNone, true);
+        }
+
+        public SectionBuilder keybind(String label, State<Keybind> state, String description, boolean disallowNone, boolean allowMouseButtons) {
+            return row(label, description, new KeybindSelector(state)
+                    .disallowNone(disallowNone)
+                    .allowMouseButtons(allowMouseButtons)
+                    .width(widgetWidth), false);
         }
 
         public SectionBuilder text(String label, State<String> state, String description) {

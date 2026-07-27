@@ -14,6 +14,8 @@ import dev.someoneok.crystalconfig.utils.MathUtil;
 import java.util.*;
 import java.util.function.Function;
 
+import static dev.someoneok.crystalconfig.utils.TextUtils.ellipsize;
+
 /**
  * Single-select dropdown that renders options under non-interactive group label rows.
  *
@@ -768,20 +770,6 @@ public class GroupedDropdown<G extends Enum<G>, T> extends Component {
         if (y < scroll) scroll = y;
         else if (bottom > scroll + visible) scroll = bottom - visible;
         clampScroll();
-    }
-
-    private static String ellipsize(RenderContext context, String value, float font, float maxWidth) {
-        String s = value == null ? "" : value;
-        if (context.measureText(s, font).width() <= maxWidth) return s;
-        String ellipsis = "...";
-        if (context.measureText(ellipsis, font).width() > maxWidth) return "";
-        int lo = 0, hi = s.length();
-        while (lo < hi) {
-            int mid = (lo + hi + 1) >>> 1;
-            if (context.measureText(s.substring(0, mid) + ellipsis, font).width() <= maxWidth) lo = mid;
-            else hi = mid - 1;
-        }
-        return s.substring(0, lo) + ellipsis;
     }
 
     private Rect availableBounds() {

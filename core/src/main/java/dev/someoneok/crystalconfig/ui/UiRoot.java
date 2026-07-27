@@ -163,15 +163,21 @@ public final class UiRoot {
         mouseY = y;
         Component hit = root.hitTest(x, y);
         setHovered(hit);
+        final float eventX = x;
+        final float eventY = y;
+        MouseButtonEvent pressedEvent = new MouseButtonEvent(eventX, eventY, button, rawButton, modifiers);
+
+        if (focused != null && isInteractable(focused) && focused.onMousePressedCapture(pressedEvent)) {
+            captured = focused;
+            return true;
+        }
+
         if (hit == null) {
             setFocused(null);
             return false;
         }
         if (hit.focusable()) setFocused(hit);
         else if (!isFocusedOrDescendant(hit)) setFocused(null);
-        final float eventX = x;
-        final float eventY = y;
-        MouseButtonEvent pressedEvent = new MouseButtonEvent(eventX, eventY, button, rawButton, modifiers);
         boolean captureConsumed = capture(hit, c -> c.onMousePressedCapture(pressedEvent));
         boolean consumed = captureConsumed || bubble(hit, c -> c.onMousePressed(pressedEvent));
         captured = hit;

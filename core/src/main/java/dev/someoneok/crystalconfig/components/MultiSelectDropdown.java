@@ -14,6 +14,8 @@ import dev.someoneok.crystalconfig.utils.MathUtil;
 import java.util.*;
 import java.util.function.Function;
 
+import static dev.someoneok.crystalconfig.utils.TextUtils.ellipsize;
+
 public class MultiSelectDropdown<T> extends Component {
     private static final float OVERLAY_Z_BASE = 10000.0f;
     private static final float HEADER_HEIGHT = 30;
@@ -468,21 +470,6 @@ public class MultiSelectDropdown<T> extends Component {
             searchInput.visible(false);
             searchInput.layout(null, Rect.ZERO);
         }
-    }
-
-    private static String ellipsize(RenderContext context, String value, float font, float maxWidth) {
-        String s = value == null ? "" : value;
-        if (context.measureText(s, font).width() <= maxWidth) return s;
-        String ellipsis = "...";
-        if (context.measureText(ellipsis, font).width() > maxWidth) return "";
-        int lo = 0;
-        int hi = s.length();
-        while (lo < hi) {
-            int mid = (lo + hi + 1) >>> 1;
-            if (context.measureText(s.substring(0, mid) + ellipsis, font).width() <= maxWidth) lo = mid;
-            else hi = mid - 1;
-        }
-        return s.substring(0, lo) + ellipsis;
     }
 
     private Rect headerRect() {

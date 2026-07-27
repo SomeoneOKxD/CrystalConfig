@@ -18,6 +18,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import static dev.someoneok.crystalconfig.utils.TextUtils.ellipsizePlain;
+
 public class TextInput extends Component {
     /**
      * Controls how sensitive text values are displayed. Values are always stored
@@ -162,7 +164,7 @@ public class TextInput extends Component {
         } else {
             scrollOffset = 0;
             String display = displayValue(value, false);
-            String shown = value.isEmpty() ? placeholder : ellipsizeEnd(context, display, font, clip.w());
+            String shown = value.isEmpty() ? placeholder : ellipsizePlain(context, display, font, clip.w());
             context.plainText(shown, textX, ty, font, color, z + 1);
         }
         context.popClip();
@@ -452,21 +454,6 @@ public class TextInput extends Component {
         if (caretX - scrollOffset > viewportWidth) scrollOffset = caretX - viewportWidth;
         if (caretX - scrollOffset < 0) scrollOffset = caretX;
         scrollOffset = Math.max(0, Math.min(scrollOffset, maxOffset));
-    }
-
-    private String ellipsizeEnd(RenderContext context, String value, float font, float maxWidth) {
-        String text = value == null ? "" : value;
-        if (context.measurePlainText(text, font).width() <= maxWidth) return text;
-        String ellipsis = "...";
-        if (context.measurePlainText(ellipsis, font).width() > maxWidth) return "";
-        int lo = 0;
-        int hi = text.length();
-        while (lo < hi) {
-            int mid = (lo + hi + 1) >>> 1;
-            if (context.measurePlainText(text.substring(0, mid) + ellipsis, font).width() <= maxWidth) lo = mid;
-            else hi = mid - 1;
-        }
-        return text.substring(0, lo) + ellipsis;
     }
 
     private static void setClipboard(String value) {

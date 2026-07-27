@@ -16,6 +16,8 @@ import dev.someoneok.crystalconfig.utils.MathUtil;
 import java.util.*;
 import java.util.function.Function;
 
+import static dev.someoneok.crystalconfig.utils.TextUtils.ellipsize;
+
 public class DraggableEnumList<T extends Enum<T>> extends Component {
     private static final float OVERLAY_Z_BASE = 10000.0f;
     private static final String MOVE_ICON = "☰";
@@ -541,17 +543,4 @@ public class DraggableEnumList<T extends Enum<T>> extends Component {
         return root.bounds();
     }
 
-    private static String ellipsize(RenderContext context, String value, float fontSize, float maxWidth) {
-        String text = value == null ? "" : value;
-        if (context.measureText(text, fontSize, context.theme().fonts().regular()).width() <= maxWidth) return text;
-        String ellipsis = "...";
-        if (context.measureText(ellipsis, fontSize, context.theme().fonts().regular()).width() > maxWidth) return "";
-        int lo = 0, hi = text.length();
-        while (lo < hi) {
-            int mid = (lo + hi + 1) >>> 1;
-            if (context.measureText(text.substring(0, mid) + ellipsis, fontSize, context.theme().fonts().regular()).width() <= maxWidth) lo = mid;
-            else hi = mid - 1;
-        }
-        return text.substring(0, lo) + ellipsis;
-    }
 }

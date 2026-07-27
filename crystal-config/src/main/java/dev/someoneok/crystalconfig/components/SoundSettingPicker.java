@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
+import static dev.someoneok.crystalconfig.utils.TextUtils.ellipsize;
+
 public final class SoundSettingPicker extends Component {
     private static final float OVERLAY_Z_BASE = 10000.0f;
     private static final float HEADER_HEIGHT = 30;
@@ -53,6 +55,7 @@ public final class SoundSettingPicker extends Component {
     private float scroll;
     private int hoveredIndex = -1;
     private Identifier draftSound;
+    private Identifier fallbackSound;
     private String lastSearch = null;
     private long lastRefreshNanos;
     private boolean draggingScrollbar;
@@ -74,6 +77,13 @@ public final class SoundSettingPicker extends Component {
         add(volumeInput);
         add(pitchInput);
         size(260, HEADER_HEIGHT);
+    }
+
+    public SoundSettingPicker fallback(Identifier fallback) {
+        this.fallbackSound = fallback;
+        SoundSetting current = value.get() == null ? SoundSetting.none() : value.get();
+        if (!Objects.equals(current.fallback(), fallback)) value.set(current.withFallback(fallback));
+        return this;
     }
 
     public SoundSettingPicker allowNone(boolean allowNone) {
@@ -219,8 +229,11 @@ public final class SoundSettingPicker extends Component {
                 boolean selected = Objects.equals(id, draftSound);
                 if (hoveredItem) context.rect(item.inset(2, 1, 2, 1), SdfRectStyle.create().fill(context.theme().palette().surfaceHover().withAlpha(Math.round(170 * anim))).radius(context.theme().radii().sm()), panelZ + 2);
                 if (selected) context.rect(item.inset(2, 1, 2, 1), SdfRectStyle.create().fill(context.theme().palette().accent().withAlpha(Math.round(58 * anim))).radius(context.theme().radii().sm()), panelZ + 3);
-                String text = ellipsize(context, id.toShortString(), font, Math.max(8, item.w() - 16));
-                context.text(text, item.x() + 8, item.centerY() - context.lineHeight(font) * 0.5f, font, (selected ? context.theme().palette().accent() : context.theme().palette().text()).withAlpha(alpha), panelZ + 4);
+                boolean available = MinecraftSounds.isAvailable(id);
+                String itemName = id.toShortString() + (available ? "" : " (missing)");
+                String text = ellipsize(context, itemName, font, Math.max(8, item.w() - 16));
+                ColorRGBA itemColor = !available ? context.theme().palette().danger() : selected ? context.theme().palette().accent() : context.theme().palette().text();
+                context.text(text, item.x() + 8, item.centerY() - context.lineHeight(font) * 0.5f, font, itemColor.withAlpha(alpha), panelZ + 4);
             }
         }
         context.popClip();
@@ -232,7 +245,7 @@ public final class SoundSettingPicker extends Component {
 
         String selectedText = draftSound == null
                 ? (allowNone ? "None selected" : "Sound required")
-                : draftSound.toShortString();
+                : selectedStatus(draftSound);
         context.text(ellipsize(context, selectedText, font, Math.max(8, panel.w() - PANEL_PADDING * 2)),
                 panel.x() + PANEL_PADDING, selectedLabelY(panel), font,
                 draftSound == null ? context.theme().palette().mutedText().withAlpha(alpha) : context.theme().palette().accent().withAlpha(alpha), panelZ + 5);
@@ -258,7 +271,7 @@ public final class SoundSettingPicker extends Component {
 
     private void renderButtons(RenderContext context, Rect panel, float font, float panelZ, float anim) {
         renderActionButton(context, clearButton(panel), "Clear", font, panelZ, false, clearDisabled(), ButtonId.CLEAR, anim);
-        renderActionButton(context, playButton(panel), "Play", font, panelZ, false, draftSound == null, ButtonId.PLAY, anim);
+        renderActionButton(context, playButton(panel), "Play", font, panelZ, false, playDisabled(), ButtonId.PLAY, anim);
         renderActionButton(context, selectButton(panel), "Select", font, panelZ, true, selectDisabled(), ButtonId.SELECT, anim);
     }
 
@@ -474,6 +487,7 @@ public final class SoundSettingPicker extends Component {
     private void open() {
         SoundSetting current = value.get() == null ? SoundSetting.none() : value.get();
         draftSound = current.sound();
+        if (fallbackSound == null) fallbackSound = current.fallback();
         volumeState.set((double) current.volume());
         pitchState.set((double) current.pitch());
         search.set("");
@@ -508,7 +522,7 @@ public final class SoundSettingPicker extends Component {
         focusOnly(null);
         syncDraftFromNumberInputs();
         if (selectDisabled()) return;
-        value.set(new SoundSetting(draftSound, volumeState.get().floatValue(), pitchState.get().floatValue()));
+        value.set(new SoundSetting(draftSound, volumeState.get().floatValue(), pitchState.get().floatValue(), effectiveFallback()));
         close();
     }
 
@@ -519,7 +533,7 @@ public final class SoundSettingPicker extends Component {
                 if (!clearDisabled()) draftSound = null;
             }
             case PLAY -> {
-                if (draftSound != null) MinecraftSounds.playPreview(draftSound, volumeState.get().floatValue(), pitchState.get().floatValue());
+                if (!playDisabled()) MinecraftSounds.playPreview(draftSound, effectiveFallback(), volumeState.get().floatValue(), pitchState.get().floatValue());
             }
             case SELECT -> commitAndClose();
         }
@@ -527,6 +541,7 @@ public final class SoundSettingPicker extends Component {
 
     private boolean clearDisabled() { return !allowNone || draftSound == null; }
     private boolean selectDisabled() { return !allowNone && draftSound == null; }
+    private boolean playDisabled() { return draftSound == null || MinecraftSounds.resolve(draftSound, effectiveFallback()) == null; }
 
     private void syncDraftFromNumberInputs() {
         volumeState.set((double) MathUtil.clamp(volumeState.get().floatValue(), SoundSetting.MIN_VOLUME, SoundSetting.MAX_VOLUME));
@@ -535,14 +550,33 @@ public final class SoundSettingPicker extends Component {
 
     private String currentLabel() {
         SoundSetting current = value.get();
-        return current == null ? "None" : current.displayName();
+        if (current == null || current.sound() == null) return "None";
+        return selectedStatus(current.sound());
+    }
+
+    private String selectedStatus(Identifier selected) {
+        if (selected == null) return "None";
+        if (MinecraftSounds.isAvailable(selected)) return selected.toShortString();
+        Identifier fallback = effectiveFallback();
+        if (MinecraftSounds.isAvailable(fallback)) {
+            return selected.toShortString() + " (missing; using " + fallback.toShortString() + ")";
+        }
+        return selected.toShortString() + " (missing)";
+    }
+
+    private Identifier effectiveFallback() {
+        SoundSetting current = value.get();
+        return fallbackSound != null ? fallbackSound : current == null ? null : current.fallback();
     }
 
     private void ensureSoundsLoaded(boolean force) {
         long now = System.nanoTime();
-        if (!force && !allSounds.isEmpty() && now - lastRefreshNanos < 5_000_000_000L) return;
-        List<Identifier> loaded = MinecraftSounds.availableSounds();
-        if (!loaded.isEmpty() && !loaded.equals(allSounds)) {
+        if (!force && now - lastRefreshNanos < 5_000_000_000L) return;
+        List<Identifier> loaded = new ArrayList<>(MinecraftSounds.availableSounds());
+        Identifier persisted = draftSound;
+        if (persisted == null && value.get() != null) persisted = value.get().sound();
+        if (persisted != null && !loaded.contains(persisted)) loaded.add(0, persisted);
+        if (!loaded.equals(allSounds)) {
             allSounds.clear();
             allSounds.addAll(loaded);
             lastSearch = null;
@@ -622,7 +656,7 @@ public final class SoundSettingPicker extends Component {
 
     private ButtonId buttonAt(Rect panel, float x, float y) {
         if (clearButton(panel).contains(x, y)) return clearDisabled() ? null : ButtonId.CLEAR;
-        if (playButton(panel).contains(x, y)) return draftSound == null ? null : ButtonId.PLAY;
+        if (playButton(panel).contains(x, y)) return playDisabled() ? null : ButtonId.PLAY;
         if (selectButton(panel).contains(x, y)) return selectDisabled() ? null : ButtonId.SELECT;
         return null;
     }
@@ -696,17 +730,4 @@ public final class SoundSettingPicker extends Component {
         return 1.0f - inv * inv * inv;
     }
 
-    private static String ellipsize(RenderContext context, String value, float font, float maxWidth) {
-        String s = value == null ? "" : value;
-        if (context.measureText(s, font).width() <= maxWidth) return s;
-        String ellipsis = "...";
-        if (context.measureText(ellipsis, font).width() > maxWidth) return "";
-        int lo = 0, hi = s.length();
-        while (lo < hi) {
-            int mid = (lo + hi + 1) >>> 1;
-            if (context.measureText(s.substring(0, mid) + ellipsis, font).width() <= maxWidth) lo = mid;
-            else hi = mid - 1;
-        }
-        return s.substring(0, lo) + ellipsis;
-    }
 }

@@ -10,11 +10,12 @@ The reusable UI framework lives in `core`. Minecraft-specific rendering, input i
 - Manual config screens with `ConfigScreenBuilder`
 - Reactive state primitives: `State<T>`, `MutableState<T>`, `Binding<T>`, and `ConditionalState<T>`
 - JSON persistence with `GsonConfigStore`
+- User-created named profiles with explicit per-profile setting links and stable generated backend IDs
 - Per-screen UI settings for theme, scale, reset behavior, and store registration
 - Renderer-neutral draw commands and a small Minecraft adapter layer
 - Built-in controls for toggles, checkboxes, sliders, numbers, text, colors, keybinds, dropdowns, multi-select dropdowns, grouped dropdowns, draggable enum lists, and custom object lists
 - Fabric client implementation packaged as `CrystalConfig`
-- Minecraft-only sound picker support through `@ConfigSound`
+- Minecraft-only sound picker support through `@ConfigSound`, including active resource-pack sounds and persisted fallbacks
 - MSDF font atlas generation tasks for the Fabric renderer
 
 ## Modules
@@ -144,9 +145,13 @@ MinecraftAutoConfig.register();
 ```
 
 ```java
-@ConfigSound(label = "Alert sound", description = "Played when the alert triggers.")
+@ConfigSound(
+        label = "Alert sound",
+        description = "Played when the alert triggers.",
+        fallback = "minecraft:block.note_block.pling"
+)
 public static final MutableState<SoundSetting> alertSound =
-        new MutableState<>(SoundSetting.none());
+        new MutableState<>(SoundSetting.fromId("minecraft:block.note_block.pling"));
 ```
 
 ## Documentation
@@ -156,6 +161,7 @@ public static final MutableState<SoundSetting> alertSound =
 - [Architecture](docs/ARCHITECTURE.md) — module boundaries, render lifecycle, and input lifecycle
 - [Annotation API](docs/ANNOTATION_API.md) — supported AutoConfig annotations
 - [Config System Guide](docs/CONFIG_SYSTEM_GUIDE.md) — config state and persistence model
+- [User-created Profiles](docs/PROFILES.md) — named selectors and explicit profile-scoped settings
 - [Config UI Settings](docs/CONFIG_UI_SETTINGS.md) — themes, scaling, reset behavior, and store registration
 - [Custom Option](docs/CUSTOM_OPTION.md) and [Custom List Option](docs/CUSTOM_LIST_OPTION.md) — custom widget extension points
 - [Backend Checklist](docs/MINECRAFT_BACKEND_CHECKLIST.md) — checklist for another Minecraft backend

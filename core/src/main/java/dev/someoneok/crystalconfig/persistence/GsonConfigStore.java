@@ -59,13 +59,23 @@ public final class GsonConfigStore implements AutoCloseable {
     public synchronized <T> GsonConfigStore register(String key, State<T> state, TypeToken<T> type) { return register(key, state, type.getType()); }
 
     public synchronized <T> GsonConfigStore register(String key, State<T> state, Type type) {
+        return register(key, state, type, new JsonCodec<>() {
+            @Override public JsonElement write(Gson gson, T value, Type valueType) { return gson.toJsonTree(value, valueType); }
+            @Override public T read(Gson gson, JsonElement element, Type valueType) { return gson.fromJson(element, valueType); }
+        });
+    }
+
+    public synchronized <T> GsonConfigStore register(String key, State<T> state, Type type, JsonCodec<T> codec) {
         validateKey(key);
         Objects.requireNonNull(state, "state");
         Objects.requireNonNull(type, "type");
-        entries.put(key, new Entry<>(key, state, type, gson.toJsonTree(state.get(), type)));
+        Objects.requireNonNull(codec, "codec");
+        entries.put(key, new Entry<>(key, state, type, codec.write(gson, state.get(), type), codec));
         state.subscribe(ignored -> requestSave());
         return this;
     }
+
+    public Gson gson() { return gson; }
 
     /** Restores every registered state to the value it had at registration time. */
     public synchronized void resetRegisteredDefaults() {
@@ -291,10 +301,15 @@ public final class GsonConfigStore implements AutoCloseable {
         void migrate(JsonObject root);
     }
 
-    private record Entry<T>(String key, State<T> state, Type type, JsonElement defaultValue) {
-        void read(Gson gson, JsonElement element) { state.set(gson.fromJson(element, type)); }
-        void write(Gson gson, JsonObject root) { add(root, key, gson.toJsonTree(state.get(), type)); }
-        void reset(Gson gson) { state.set(gson.fromJson(defaultValue.deepCopy(), type)); }
+    public interface JsonCodec<T> {
+        JsonElement write(Gson gson, T value, Type valueType);
+        T read(Gson gson, JsonElement element, Type valueType);
+    }
+
+    private record Entry<T>(String key, State<T> state, Type type, JsonElement defaultValue, JsonCodec<T> codec) {
+        void read(Gson gson, JsonElement element) { state.set(codec.read(gson, element, type)); }
+        void write(Gson gson, JsonObject root) { add(root, key, codec.write(gson, state.get(), type)); }
+        void reset(Gson gson) { state.set(codec.read(gson, defaultValue.deepCopy(), type)); }
     }
 
     private static final class ConfigThreadFactory implements ThreadFactory {

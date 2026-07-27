@@ -75,8 +75,28 @@ Use one option annotation per field.
 | `@ConfigCustomList` | `List<T>` | Custom add/remove list |
 | `@ConfigCustom` | `Component` | Custom widget inside normal label/description row |
 | `@ConfigCustomOption` | `Component` or `Supplier<Component>` | Fully custom full-width row/card |
+| `@ConfigProfile` | `ProfileConfig` | User-editable named profile selector |
 
 Option fields may be declared as `State<T>`, `MutableState<T>`, or `ConfigValue<T>`.
+
+## User-created profile selectors
+
+`@ConfigProfile` annotates a static `ProfileConfig`. Link only the states that should change with the selected profile. AutoConfig excludes those linked states from normal global persistence and stores them inside the profile document instead.
+
+```java
+@ConfigToggle(key = "enabled", label = "Enabled")
+public static final MutableState<Boolean> enabled = new MutableState<>(true);
+
+@ConfigSlider(key = "scale", label = "Scale", min = 0.5, max = 2.0, step = 0.05)
+public static final MutableState<Double> scale = new MutableState<>(1.0);
+
+@ConfigProfile(key = "profiles", label = "Profile")
+public static final ProfileConfig profiles = ProfileConfig.create("Default")
+        .link("enabled", enabled, Boolean.class)
+        .link("scale", scale, Double.class);
+```
+
+The user-facing name is sanitized display text. Persistence uses a generated `profile_...` ID that is independent from the name. See [User-created Profiles](PROFILES.md) for manual registration, generic types, and the JSON shape.
 
 Most option annotations include:
 
@@ -145,19 +165,36 @@ public static final MutableState<String> profileName = new MutableState<>("defau
 public static final MutableState<String> uuid = new MutableState<>("");
 ```
 
-## Keybind none handling
+## Keybind input options
 
-`@ConfigKeybind(disallowNone = true)` prevents Escape, Backspace, and Delete from changing the binding to `None`. The default is `false`, preserving the existing behavior where those keys clear the binding.
+`@ConfigKeybind` accepts two input-policy options:
+
+- `disallowNone = true` prevents Backspace and Delete from changing the binding to `None`. Escape always cancels listening without changing the current binding.
+- `allowMouseButtons = false` restricts assignment to keyboard keys. Mouse clicks are consumed while the selector is listening, but they do not change the binding. The default is `true`, so mouse buttons are assignable unless explicitly disabled.
 
 ```java
 @ConfigKeybind(
         key = "openMenu",
         label = "Open menu",
-        description = "Must always have a real keybind.",
-        disallowNone = true
+        description = "Keyboard key only; must always have a binding.",
+        disallowNone = true,
+        allowMouseButtons = false
 )
 public static final MutableState<Keybind> openMenu = new MutableState<>(Keybind.none());
 ```
+
+Mouse bindings are stored separately from GLFW keyboard key codes. Do not pass `keybind.keyCode()` directly to `glfwGetKey`. Branch on the binding type and use the typed accessor or matcher:
+
+```java
+Keybind bind = openMenu.get();
+if (bind.isKeyboardKey()) {
+    boolean pressed = GLFW.glfwGetKey(window, bind.glfwKey()) == GLFW.GLFW_PRESS;
+} else if (bind.isMouseButton()) {
+    boolean pressed = GLFW.glfwGetMouseButton(window, bind.glfwMouseButton()) == GLFW.GLFW_PRESS;
+}
+```
+
+`matchesGlfwKey(int)` and `matchesGlfwMouseButton(int)` are also available for event-driven input handling. Left, right, middle, and mouse buttons 4-8 are supported.
 
 ## Dropdowns
 
@@ -274,6 +311,7 @@ Marker rows are UI-only and are not persisted.
 | `@ConfigSpacer` | Vertical gap. |
 | `@ConfigButton` | Action button. Field must be a static `Runnable`. Supports `hiddenWhen` and `disabledWhen` member-name predicates. |
 | `@ConfigAccordion` | Groups rows from a static config holder class referenced by a `Class<?>` field. |
+| `@ConfigProfile` | Persists and renders a user-editable `ProfileConfig`. |
 | `@ConfigFooterButton` | Single sidebar footer button. Field must be a static `Runnable`. |
 | `@ConfigFooterIcon` | Compact sidebar footer icon. |
 | `@ConfigTooltip` | Tooltip for a field or category. |

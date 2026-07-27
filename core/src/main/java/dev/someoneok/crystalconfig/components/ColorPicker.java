@@ -16,6 +16,8 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static dev.someoneok.crystalconfig.utils.TextUtils.ellipsizePlain;
+
 public class ColorPicker extends Component {
     private static final float OVERLAY_Z_BASE = 10000.0f;
     private final State<ColorRGBA> color;
@@ -217,7 +219,7 @@ public class ColorPicker extends Component {
         } else {
             inputScrollOffset = 0;
             String placeholder = allowAlpha ? "#RRGGBBAA / rgba(...)" : "#RRGGBB / rgb(...)";
-            String shown = text.isEmpty() ? placeholder : ellipsizeInputEnd(context, text, font, clip.w());
+            String shown = text.isEmpty() ? placeholder : ellipsizePlain(context, text, font, clip.w());
             context.plainText(shown, textX, ty, font, text.isEmpty() ? context.theme().palette().mutedText().multiplyAlpha(inputReveal) : textColor.multiplyAlpha(inputReveal), z + OVERLAY_Z_BASE + 36);
         }
         context.popClip();
@@ -804,21 +806,6 @@ public class ColorPicker extends Component {
         if (caretX - inputScrollOffset > viewportWidth) inputScrollOffset = caretX - viewportWidth;
         if (caretX - inputScrollOffset < 0) inputScrollOffset = caretX;
         inputScrollOffset = Math.max(0, Math.min(inputScrollOffset, maxOffset));
-    }
-
-    private String ellipsizeInputEnd(RenderContext context, String value, float font, float maxWidth) {
-        String text = value == null ? "" : value;
-        if (context.measurePlainText(text, font).width() <= maxWidth) return text;
-        String ellipsis = "...";
-        if (context.measurePlainText(ellipsis, font).width() > maxWidth) return "";
-        int lo = 0;
-        int hi = text.length();
-        while (lo < hi) {
-            int mid = (lo + hi + 1) >>> 1;
-            if (context.measurePlainText(text.substring(0, mid) + ellipsis, font).width() <= maxWidth) lo = mid;
-            else hi = mid - 1;
-        }
-        return text.substring(0, lo) + ellipsis;
     }
 
     private static int clamp8(int value) { return Math.max(0, Math.min(255, value)); }

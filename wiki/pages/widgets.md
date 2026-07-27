@@ -54,6 +54,7 @@ ConditionalState<Double> scale = ConditionalState
 | Draggable enum list | `@ConfigDraggableList` | `draggableList(...)` | `List<Enum>` |
 | Custom row inside normal option shell | `@ConfigCustom` | `custom(...)` / `customBelow(...)` | custom component |
 | Full-width custom option | `@ConfigCustomOption` | `customOption(...)` / `component(...)` | custom component |
+| User-created profile selector | `@ConfigProfile` | `profile(...)` | `ProfileConfig` |
 | Custom persisted object list | `@ConfigCustomList` | `CustomListOption` through `custom(...)` or `customBelow(...)` | `List<T>` |
 | Info row | `@ConfigInfo` | `info(...)` | none |
 | Separator | `@ConfigSeparator` | `separator()` | none |
@@ -151,18 +152,51 @@ section.color("Accent color", accent, true, "Main UI accent.");
 
 ## Keybind selector
 
+Mouse buttons are allowed by default. Set `allowMouseButtons = false` when an option must accept keyboard keys only. Escape cancels listening without changing the current value; Backspace and Delete clear it unless `disallowNone = true`.
+
 ```java
-@ConfigKeybind(key = "openMenu", label = "Open menu", description = "Must always have a real key.", disallowNone = true)
+@ConfigKeybind(
+    key = "openMenu",
+    label = "Open menu",
+    description = "Keyboard-only keybind.",
+    disallowNone = true,
+    allowMouseButtons = false
+)
 public static final MutableState<Keybind> openMenu = new MutableState<>(Keybind.none());
 ```
 
 Manual:
 
 ```java
-section.keybind("Open menu", openMenu, "Must always have a real key.", true);
+section.keybind(
+    "Open menu",
+    openMenu,
+    "Keyboard-only keybind.",
+    true,  // disallowNone
+    false  // allowMouseButtons
+);
 ```
 
-`disallowNone = true` prevents Escape, Backspace, and Delete from clearing the binding.
+Direct component configuration is also available:
+
+```java
+new KeybindSelector(openMenu)
+    .disallowNone(true)
+    .allowMouseButtons(false);
+```
+
+Mouse bindings are encoded separately from keyboard key codes. Never send `keybind.keyCode()` directly to `glfwGetKey`; use the typed accessors:
+
+```java
+Keybind bind = openMenu.get();
+if (bind.isKeyboardKey()) {
+    boolean pressed = GLFW.glfwGetKey(window, bind.glfwKey()) == GLFW.GLFW_PRESS;
+} else if (bind.isMouseButton()) {
+    boolean pressed = GLFW.glfwGetMouseButton(window, bind.glfwMouseButton()) == GLFW.GLFW_PRESS;
+}
+```
+
+For event-driven input, use `matchesGlfwKey(key)` or `matchesGlfwMouseButton(button)`. All GLFW mouse buttons 0-7 are assignable, including left, right, and middle.
 
 ## Dropdowns
 

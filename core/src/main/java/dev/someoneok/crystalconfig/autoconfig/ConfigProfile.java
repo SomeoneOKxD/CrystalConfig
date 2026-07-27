@@ -7,11 +7,8 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface ConfigSound {
+public @interface ConfigProfile {
     String label();
     String description() default "";
     String key() default "";
-
-    boolean allowNone() default true;
-    String fallback() default "";
 }

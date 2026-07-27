@@ -12,8 +12,6 @@ public @interface ConfigKeybind {
     String label();
     String description() default "";
 
-    /**
-     * When true, Escape/Backspace/Delete cancel key listening without changing the value to None.
-     */
     boolean disallowNone() default false;
+    boolean allowMouseButtons() default true;
 }

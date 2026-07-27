@@ -1,12 +1,12 @@
 ---
 layout: default
 title: Minecraft sound picker
-description: Using CrystalConfig's Fabric-only ConfigSound option.
+description: Use registered and resource-pack sounds with persistent fallback behavior.
 ---
 
 # Minecraft sound picker
 
-The Fabric module adds a Minecraft-specific sound picker through `@ConfigSound`. It binds to `SoundSetting`, lets users select a registered sound, and stores sound id, volume, and pitch.
+The Fabric module adds a Minecraft-specific sound picker through `@ConfigSound`. It binds to `SoundSetting`, discovers vanilla/mod sound events plus sound events supplied by active resource packs, and stores the selected sound ID, volume, pitch, and fallback.
 
 ## Register the Minecraft AutoConfig extension
 
@@ -29,101 +29,79 @@ Registration is safe to call more than once.
 ## AutoConfig example
 
 ```java
-package com.example.mymod.config;
-
-import dev.someoneok.crystalconfig.autoconfig.ConfigCategory;
-import dev.someoneok.crystalconfig.autoconfig.ConfigSound;
-import dev.someoneok.crystalconfig.models.SoundSetting;
-import dev.someoneok.crystalconfig.state.MutableState;
-
 @ConfigCategory(main = "Audio", sub = "Alerts")
 public final class AudioConfig {
-    private AudioConfig() {
-    }
-
     @ConfigSound(
             key = "alertSound",
             label = "Alert sound",
-            description = "Played when an alert is triggered.",
-            allowNone = true
+            description = "Texture/resource-pack sounds are supported.",
+            allowNone = true,
+            fallback = "minecraft:block.note_block.pling"
     )
     public static final MutableState<SoundSetting> alertSound = new MutableState<>(
             SoundSetting.fromId("minecraft:block.note_block.pling")
     );
-
-    @ConfigSound(
-            key = "requiredSound",
-            label = "Required sound",
-            description = "This option cannot be set to None.",
-            allowNone = false
-    )
-    public static final MutableState<SoundSetting> requiredSound = new MutableState<>(
-            SoundSetting.fromId("entity.experience_orb.pickup")
-    );
 }
 ```
 
-`SoundSetting.fromId("entity.experience_orb.pickup")` assumes the `minecraft` namespace when no namespace is present.
+A sound ID without a namespace assumes `minecraft`. When `fallback` is blank, the field's initial selected sound is captured as its fallback. Set an explicit built-in sound when the default selection may itself come from a resource pack.
+
+## Missing resource packs
+
+If a user selects `my_pack:custom_alert` and later disables or removes that resource pack:
+
+- the selected ID remains in the JSON and remains visible as missing in the picker;
+- CrystalConfig does not replace or clear the user's choice;
+- preview and playback use the available fallback;
+- reinstalling the pack makes the original selection work again automatically.
 
 ## Saved JSON
 
-`SoundSetting` has a built-in Gson adapter. It saves as:
-
 ```json
 {
-  "sound": "minecraft:block.note_block.pling",
+  "sound": "my_pack:custom_alert",
   "volume": 1.0,
-  "pitch": 1.0
+  "pitch": 1.0,
+  "fallback": "minecraft:block.note_block.pling"
 }
 ```
 
-`None` saves as:
-
-```json
-{
-  "sound": null,
-  "volume": 1.0,
-  "pitch": 1.0
-}
-```
+Older string/object/null formats remain readable. `fallback` is omitted when none is configured.
 
 ## Using the selected sound
 
-```java
-import dev.someoneok.crystalconfig.models.SoundSetting;
-import dev.someoneok.crystalconfig.util.MinecraftSounds;
+Use the `SoundSetting` overload so runtime playback gets the same missing-sound fallback behavior as the picker preview:
 
-public final class MyAlerts {
-    public static void playAlert() {
-        SoundSetting setting = AudioConfig.alertSound.get();
-        if (setting.hasSound()) {
-            MinecraftSounds.playPreview(setting.sound(), setting.volume(), setting.pitch());
-        }
-    }
+```java
+import dev.someoneok.crystalconfig.util.MinecraftSounds;
+import net.minecraft.sounds.SoundSource;
+
+public static void playAlert() {
+    MinecraftSounds.play(AudioConfig.alertSound.get(), SoundSource.MASTER);
 }
 ```
 
+`MinecraftSounds.resolve(selected, fallback)` is also available when another playback system needs the resolved ID.
+
 ## Manual screen usage
 
-The sound picker is registered as an AutoConfig custom component. For manual screens, use the component directly:
-
 ```java
-import dev.someoneok.crystalconfig.components.SoundSettingPicker;
+Identifier fallback = SoundSetting.parseSoundId("minecraft:block.note_block.pling", true);
 
 section.custom(
         "Alert sound",
-        new SoundSettingPicker(AudioConfig.alertSound).allowNone(true),
+        new SoundSettingPicker(AudioConfig.alertSound)
+                .fallback(fallback)
+                .allowNone(true),
         "Played when an alert is triggered."
 );
 ```
 
-## Value limits
+The picker refreshes the active sound list while open. Missing persisted selections are retained even when they no longer appear in the active sound manager.
 
-`SoundSetting` clamps invalid values:
+## Value limits
 
 | Field | Range |
 |---|---|
 | `volume` | `0.0` to `4.0` |
 | `pitch` | `0.01` to `4.0` |
-
-The preview helper clamps to a wider preview range internally, but your stored `SoundSetting` remains within the model limits.

@@ -4,13 +4,6 @@ import dev.someoneok.crystalconfig.input.KeyCodes;
 
 import java.util.Locale;
 
-/**
- * Utilities for storing and matching raw GLFW-compatible keybind codes.
- *
- * <p>The keybind model intentionally stores only the raw GLFW code and a display
- * name. Keyboard binds store the GLFW key code. Mouse binds store the raw GLFW
- * mouse button value directly. No offset/encoding layer is used.</p>
- */
 public final class KeybindUtils {
     public static final int GLFW_MOUSE_BUTTON_1 = 0;
     public static final int GLFW_MOUSE_BUTTON_2 = 1;
@@ -26,46 +19,79 @@ public final class KeybindUtils {
 
     private KeybindUtils() { }
 
-    public static Keybind fromGlfwKey(int keyCode) {
-        return fromGlfwKey(keyCode, null);
+    public static boolean isKey(int keyCode) {
+        return switch (keyCode) {
+            case KeyCodes.SPACE,
+                 KeyCodes.APOSTROPHE,
+                 KeyCodes.COMMA,
+                 KeyCodes.MINUS,
+                 KeyCodes.PERIOD,
+                 KeyCodes.SLASH,
+                 KeyCodes.SEMICOLON,
+                 KeyCodes.EQUAL,
+                 KeyCodes.LEFT_BRACKET,
+                 KeyCodes.BACKSLASH,
+                 KeyCodes.RIGHT_BRACKET,
+                 KeyCodes.GRAVE_ACCENT,
+                 KeyCodes.WORLD_1,
+                 KeyCodes.WORLD_2,
+                 KeyCodes.ESCAPE,
+                 KeyCodes.ENTER,
+                 KeyCodes.TAB,
+                 KeyCodes.BACKSPACE,
+                 KeyCodes.INSERT,
+                 KeyCodes.DELETE,
+                 KeyCodes.RIGHT,
+                 KeyCodes.LEFT,
+                 KeyCodes.DOWN,
+                 KeyCodes.UP,
+                 KeyCodes.PAGE_UP,
+                 KeyCodes.PAGE_DOWN,
+                 KeyCodes.HOME,
+                 KeyCodes.END,
+                 KeyCodes.CAPS_LOCK,
+                 KeyCodes.SCROLL_LOCK,
+                 KeyCodes.NUM_LOCK,
+                 KeyCodes.PRINT_SCREEN,
+                 KeyCodes.PAUSE,
+                 KeyCodes.KP_DECIMAL,
+                 KeyCodes.KP_DIVIDE,
+                 KeyCodes.KP_MULTIPLY,
+                 KeyCodes.KP_SUBTRACT,
+                 KeyCodes.KP_ADD,
+                 KeyCodes.KP_ENTER,
+                 KeyCodes.KP_EQUAL,
+                 KeyCodes.LEFT_SHIFT,
+                 KeyCodes.LEFT_CONTROL,
+                 KeyCodes.LEFT_ALT,
+                 KeyCodes.LEFT_SUPER,
+                 KeyCodes.RIGHT_SHIFT,
+                 KeyCodes.RIGHT_CONTROL,
+                 KeyCodes.RIGHT_ALT,
+                 KeyCodes.RIGHT_SUPER,
+                 KeyCodes.MENU -> true;
+            default -> (keyCode >= KeyCodes.KEY_0 && keyCode <= KeyCodes.KEY_9)
+                    || (keyCode >= KeyCodes.KEY_A && keyCode <= KeyCodes.KEY_Z)
+                    || (keyCode >= KeyCodes.F1 && keyCode <= KeyCodes.F25)
+                    || (keyCode >= KeyCodes.KP_0 && keyCode <= KeyCodes.KP_9);
+        };
     }
 
-    public static Keybind fromGlfwKey(int keyCode, String displayName) {
-        if (keyCode == KeyCodes.UNKNOWN) return Keybind.none();
-        return new Keybind(keyCode, displayName(keyCode, displayName));
-    }
-
-    public static Keybind fromGlfwMouseButton(int button) {
-        if (!isAssignableGlfwMouseButton(button)) return Keybind.none();
-        return new Keybind(button, mouseButtonDisplayName(button));
-    }
-
-    public static boolean isGlfwMouseButton(int button) {
+    public static boolean isMouseButton(int button) {
         return button >= GLFW_MOUSE_BUTTON_1 && button <= GLFW_MOUSE_BUTTON_8;
     }
 
-    public static boolean isReservedPrimaryMouseButton(int button) {
-        return button == GLFW_MOUSE_BUTTON_LEFT
-                || button == GLFW_MOUSE_BUTTON_RIGHT
-                || button == GLFW_MOUSE_BUTTON_MIDDLE;
+    public static boolean matchesKey(Keybind keybind, int keyCode) {
+        return keybind != null && keybind.matchesKey(keyCode);
     }
 
-    public static boolean isAssignableGlfwMouseButton(int button) {
-        return isGlfwMouseButton(button) && !isReservedPrimaryMouseButton(button);
+    public static boolean matchesMouse(Keybind keybind, int button) {
+        return keybind != null && keybind.matchesMouse(button);
     }
 
-    public static boolean matchesGlfwKey(Keybind keybind, int keyCode) {
-        return keybind != null && !keybind.isNone() && keybind.keyCode() == keyCode;
-    }
-
-    public static boolean matchesGlfwMouseButton(Keybind keybind, int button) {
-        return keybind != null && !keybind.isNone() && isAssignableGlfwMouseButton(button) && keybind.keyCode() == button;
-    }
-
-    public static String displayName(int keyCode, String platformDisplayName) {
+    public static String keyDisplayName(int keyCode, String platformDisplayName) {
         String platform = cleanPlatformName(platformDisplayName);
-        if (platform != null) return platform;
-        return glfwKeyDisplayName(keyCode);
+        return platform != null ? platform : glfwKeyDisplayName(keyCode);
     }
 
     private static String cleanPlatformName(String value) {
@@ -74,9 +100,9 @@ public final class KeybindUtils {
         if (cleaned.isEmpty()) return null;
         if (cleaned.startsWith("key.keyboard.")) cleaned = cleaned.substring("key.keyboard.".length());
         if (cleaned.startsWith("key.mouse.")) cleaned = cleaned.substring("key.mouse.".length());
+        if (cleaned.equals("unknown")) return null;
         if (cleaned.length() == 1) return cleaned.toUpperCase(Locale.ROOT);
         return switch (cleaned) {
-            case "unknown" -> null;
             case "left.shift" -> "Left Shift";
             case "right.shift" -> "Right Shift";
             case "left.control" -> "Left Ctrl";
@@ -114,7 +140,7 @@ public final class KeybindUtils {
             case GLFW_MOUSE_BUTTON_6 -> "Mouse 6";
             case GLFW_MOUSE_BUTTON_7 -> "Mouse 7";
             case GLFW_MOUSE_BUTTON_8 -> "Mouse 8";
-            default -> "Mouse " + (button + 1);
+            default -> "Unknown Mouse Button";
         };
     }
 
@@ -123,10 +149,8 @@ public final class KeybindUtils {
         if (keyCode >= KeyCodes.KEY_A && keyCode <= KeyCodes.KEY_Z) return String.valueOf((char) keyCode);
         if (keyCode >= KeyCodes.F1 && keyCode <= KeyCodes.F25) return "F" + (keyCode - KeyCodes.F1 + 1);
         if (keyCode >= KeyCodes.KP_0 && keyCode <= KeyCodes.KP_9) return "Numpad " + (keyCode - KeyCodes.KP_0);
-        if (isGlfwMouseButton(keyCode)) return mouseButtonDisplayName(keyCode);
 
         return switch (keyCode) {
-            case KeyCodes.UNKNOWN -> "Unknown";
             case KeyCodes.SPACE -> "Space";
             case KeyCodes.APOSTROPHE -> "Apostrophe";
             case KeyCodes.COMMA -> "Comma";
@@ -176,7 +200,7 @@ public final class KeybindUtils {
             case KeyCodes.RIGHT_ALT -> "Right Alt";
             case KeyCodes.RIGHT_SUPER -> "Right Super";
             case KeyCodes.MENU -> "Menu";
-            default -> "Key " + keyCode;
+            default -> "Unknown";
         };
     }
 }

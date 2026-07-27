@@ -10,6 +10,7 @@ import dev.someoneok.crystalconfig.layout.LayoutContext;
 import dev.someoneok.crystalconfig.layout.Size;
 import dev.someoneok.crystalconfig.render.*;
 import dev.someoneok.crystalconfig.ui.Component;
+import static dev.someoneok.crystalconfig.utils.TextUtils.ellipsize;
 
 public class Button extends Component {
     private String text;
@@ -67,20 +68,6 @@ public class Button extends Component {
         context.pushClip(clip);
         context.text(shown, tx, ty, font, disabled ? context.theme().palette().mutedText().withAlpha(135) : accent ? context.theme().palette().accentText() : context.theme().palette().text(), z + 1);
         context.popClip();
-    }
-
-    private static String ellipsize(RenderContext context, String value, float font, float maxWidth) {
-        String s = value == null ? "" : value;
-        if (context.measureText(s, font).width() <= maxWidth) return s;
-        String ellipsis = "...";
-        if (context.measureText(ellipsis, font).width() > maxWidth) return "";
-        int lo = 0, hi = s.length();
-        while (lo < hi) {
-            int mid = (lo + hi + 1) >>> 1;
-            if (context.measureText(s.substring(0, mid) + ellipsis, font).width() <= maxWidth) lo = mid;
-            else hi = mid - 1;
-        }
-        return s.substring(0, lo) + ellipsis;
     }
 
     @Override
