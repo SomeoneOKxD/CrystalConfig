@@ -43,6 +43,22 @@ public class ScrollContainer extends Component {
         return content;
     }
 
+    /**
+     * Scrolls a descendant into view. Animated navigation uses the normal smooth-scroll
+     * target; immediate navigation snaps to the destination before the next layout pass.
+     */
+    public boolean scrollTo(Component target, boolean animated) {
+        if (target == null || content == null || !isDescendantOf(target, content)) return false;
+
+        Rect viewport = viewport();
+        float localTop = target.bounds().y() - content.bounds().y();
+        float centeredOffset = Math.max(12.0f, (viewport.h() - target.bounds().h()) * 0.5f);
+        targetScroll = MathUtil.clamp(localTop - centeredOffset, 0, maxScroll());
+        if (!animated) scroll.snap(targetScroll);
+        markLayoutDirty();
+        return true;
+    }
+
     @Override
     protected Size measureSelf(LayoutContext context, Constraints constraints) {
         float height = preferredHeight >= 0 ? preferredHeight : Math.min(420, constraints.maxHeight());
@@ -192,5 +208,14 @@ public class ScrollContainer extends Component {
 
     private void clampTarget() {
         targetScroll = MathUtil.clamp(targetScroll, 0, maxScroll());
+    }
+
+    private static boolean isDescendantOf(Component target, Component ancestor) {
+        Component current = target;
+        while (current != null) {
+            if (current == ancestor) return true;
+            current = current.parent();
+        }
+        return false;
     }
 }

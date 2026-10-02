@@ -247,6 +247,7 @@ public abstract class Component {
 
     protected void onHoverChanged(boolean hovered) { }
     protected void onFocusChanged(boolean focused) { }
+    protected boolean retainFocusFor(Component hit) { return false; }
 
     public boolean onMouseMove(MouseMoveEvent event) { return false; }
     public boolean onMousePressedCapture(MouseButtonEvent event) { return false; }

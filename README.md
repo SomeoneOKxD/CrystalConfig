@@ -13,6 +13,7 @@ The reusable UI framework lives in `core`. Minecraft-specific rendering, input i
 - User-created named profiles with explicit per-profile setting links and stable generated backend IDs
 - Per-screen UI settings for theme, scale, reset behavior, and store registration
 - Renderer-neutral draw commands and a small Minecraft adapter layer
+- Stateless custom-screen rendering utilities backed by the same batched SDF/MSDF renderer
 - Built-in controls for toggles, checkboxes, sliders, numbers, text, colors, keybinds, dropdowns, multi-select dropdowns, grouped dropdowns, draggable enum lists, and custom object lists
 - Fabric client implementation packaged as `CrystalConfig`
 - Minecraft-only sound picker support through `@ConfigSound`, including active resource-pack sounds and persisted fallbacks
@@ -24,6 +25,7 @@ The reusable UI framework lives in `core`. Minecraft-specific rendering, input i
 | --- | --- |
 | `core` | Reusable UI components, layout, state, annotations, themes, draw commands, and JSON persistence. Contains no Minecraft imports. |
 | `bridge-minecraft` | Loader/version-neutral interfaces for Minecraft render and input backends. |
+| `render-api` | Small, renderer-only public API for custom screens. No config persistence or input ownership. |
 | `crystal-config` | Published Fabric client module, Minecraft renderer backend, MSDF text renderer, shaders, and Minecraft-only widgets. This is the JitPack artifact id. |
 | `docs` | Source-maintainer notes and API references for working on this repository. |
 | `wiki` | GitHub Pages developer guide for using CrystalConfig from another mod. |
@@ -166,6 +168,8 @@ public static final MutableState<SoundSetting> alertSound =
 - [Custom Option](docs/CUSTOM_OPTION.md) and [Custom List Option](docs/CUSTOM_LIST_OPTION.md) — custom widget extension points
 - [Backend Checklist](docs/MINECRAFT_BACKEND_CHECKLIST.md) — checklist for another Minecraft backend
 - [MSDF Font Pipeline](docs/MSDF_FONT_PIPELINE.md) — font atlas generation setup
+- [Renderer Utilities API](docs/RENDER_UTILS_API.md) — use the config renderer primitives in custom screens without config state/persistence
+- [Renderer Utilities Screen Guide](docs/RENDER_UTILS_SCREEN_GUIDE.md) — complete `Screen` subclass, input handling, lifecycle, and draw-helper reference
 
 ## License
 

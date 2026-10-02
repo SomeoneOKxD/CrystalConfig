@@ -31,6 +31,10 @@ https://github.com/SomeoneOKxD/CrystalConfig
     <h3><a href="{{ '/pages/widgets/' | relative_url }}">Widget reference</a></h3>
     <p>See the supported annotations, manual builder methods, expected state types, and example snippets.</p>
   </div>
+  <div class="tile">
+    <h3><a href="{{ '/pages/render-utils/' | relative_url }}">Custom rendering utils</a></h3>
+    <p>Reuse CrystalConfig's rounded rectangles, MSDF text, buttons, toggles, and other visual primitives without config persistence.</p>
+  </div>
 </div>
 
 ## What the library provides
@@ -42,6 +46,7 @@ https://github.com/SomeoneOKxD/CrystalConfig
 | Persistence | `GsonConfigStore` with debounced async saves, blocking or async loads, migrations, and custom Gson adapters |
 | Profiles | `ProfileConfig` with stable generated IDs and explicitly linked profile-scoped settings |
 | Fabric screen | `dev.someoneok.crystalconfig.render.ConfigScreen` |
+| Custom screen rendering | `MinecraftUiRenderUtils` plus `dev.someoneok.crystalconfig.api.render.*` |
 | Minecraft-only AutoConfig widgets | `@ConfigSound` and `SoundSetting` from the Fabric module |
 | Customization | Themes, UI scale, text shadow, custom rows, custom list rows, footer buttons, and footer icon buttons |
 
@@ -81,6 +86,8 @@ import dev.someoneok.crystalconfig.models.SoundSetting;
 2. Review [JitPack artifact details]({{ '/pages/distribution/' | relative_url }}) to understand the published jar and sources jar
 3. Pick [AutoConfig setup]({{ '/pages/autoconfig/' | relative_url }}) or [Non-AutoConfig setup]({{ '/pages/manual/' | relative_url }})
 4. Wire the result into Minecraft with [Opening screens]({{ '/pages/opening-screens/' | relative_url }})
-5. Add [Persistence]({{ '/pages/persistence/' | relative_url }}) and [Themes & UI settings]({{ '/pages/ui-settings/' | relative_url }})
-6. Add [User-created profiles]({{ '/pages/profiles/' | relative_url }}) when groups of settings need named presets
-7. Use the [Widget reference]({{ '/pages/widgets/' | relative_url }}) for individual option types
+5. For non-config custom screens, see [Custom screen rendering utils]({{ '/pages/render-utils/' | relative_url }})
+6. For a complete Minecraft `Screen` implementation, see [Renderer utils inside a Screen]({{ '/pages/render-utils-screen/' | relative_url }})
+7. Add [Persistence]({{ '/pages/persistence/' | relative_url }}) and [Themes & UI settings]({{ '/pages/ui-settings/' | relative_url }})
+8. Add [User-created profiles]({{ '/pages/profiles/' | relative_url }}) when groups of settings need named presets
+9. Use the [Widget reference]({{ '/pages/widgets/' | relative_url }}) for individual option types

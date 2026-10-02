@@ -67,6 +67,49 @@ public final class RenderContext {
         rect(rect, SdfRectStyle.create().fill(fill).radius(radius), z);
     }
 
+    public void line(float x1, float y1, float x2, float y2, float thickness, ColorRGBA color, boolean roundCaps, float z) {
+        if (!finite(x1, y1, x2, y2, thickness) || thickness <= 0.0f || color == null || color.a() == 0) return;
+        float sx1 = x1 * scale;
+        float sy1 = y1 * scale;
+        float sx2 = x2 * scale;
+        float sy2 = y2 * scale;
+        drawList.add(new QuadCommand(
+                Material.SDF_LINE,
+                new Rect(sx1, sy1, sx2, sy2),
+                color,
+                ColorRGBA.TRANSPARENT,
+                ColorRGBA.TRANSPARENT,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                1.0f,
+                thickness * scale,
+                roundCaps ? 1.0f : 0.0f,
+                z
+        ));
+    }
+
+    public void gradient(Rect rect, ColorRGBA start, ColorRGBA end, boolean horizontal, float z) {
+        if (rect == null || rect.isEmpty() || start == null || end == null) return;
+        if (start.a() == 0 && end.a() == 0) return;
+        drawList.add(new QuadCommand(
+                Material.GRADIENT,
+                scale(rect),
+                start,
+                end,
+                ColorRGBA.TRANSPARENT,
+                0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                1.0f,
+                horizontal ? 1.0f : 0.0f,
+                0.0f,
+                z
+        ));
+    }
+
+    public void image(TextureRef texture, Rect rect, Rect uv, ColorRGBA tint, TextureFilter filter, float z) {
+        if (texture == null || rect == null || rect.isEmpty() || uv == null || tint == null || tint.a() == 0) return;
+        if (!finite(uv.x(), uv.y(), uv.w(), uv.h())) return;
+        drawList.add(QuadCommand.texture(texture, scale(rect), uv, tint, filter, z));
+    }
+
     public void specialQuad(Material material, Rect rect, ColorRGBA fill, float data0, float data1, float z) {
         if (rect == null || rect.isEmpty() || fill.a() == 0) return;
         drawList.add(new QuadCommand(material, scale(rect), fill, ColorRGBA.TRANSPARENT, ColorRGBA.TRANSPARENT, 0, 0, 0, 0, 0, 1, data0, data1, z));
@@ -188,5 +231,12 @@ public final class RenderContext {
     private Rect scale(Rect rect) {
         if (scale == 1.0f) return rect;
         return new Rect(rect.x() * scale, rect.y() * scale, rect.w() * scale, rect.h() * scale);
+    }
+
+    private static boolean finite(float... values) {
+        for (float value : values) {
+            if (!Float.isFinite(value)) return false;
+        }
+        return true;
     }
 }

@@ -106,7 +106,10 @@ public final class UiRoot {
     public void render(RenderBackend backend, int width, int height, float uiScale, float deltaSeconds) {
         UiClipboard.bindBackend(backend);
         UiUrlOpener.bindBackend(backend);
-        lastEffectiveScale = clampScale(uiScale) * globalScale * clampScale((float) settings.scale());
+        lastEffectiveScale = ConfigUiSettings.BASE_RENDER_SCALE
+                * clampScale(uiScale)
+                * globalScale
+                * clampScale((float) settings.scale());
         Theme activeTheme = settings.resolveTheme(theme.get());
         backend.beginFrame(new RenderFrame(width, height, uiScale, deltaSeconds));
         drawList.clear();
@@ -177,7 +180,7 @@ public final class UiRoot {
             return false;
         }
         if (hit.focusable()) setFocused(hit);
-        else if (!isFocusedOrDescendant(hit)) setFocused(null);
+        else if (!isFocusedOrDescendant(hit) && (focused == null || !focused.retainFocusFor(hit))) setFocused(null);
         boolean captureConsumed = capture(hit, c -> c.onMousePressedCapture(pressedEvent));
         boolean consumed = captureConsumed || bubble(hit, c -> c.onMousePressed(pressedEvent));
         captured = hit;

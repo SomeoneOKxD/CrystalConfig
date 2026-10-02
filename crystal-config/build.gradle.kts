@@ -21,6 +21,7 @@ version = if (isJitPack && !jitPackVersion.isNullOrBlank()) jitPackVersion else 
 
 val bridge = project(":bridge-minecraft")
 val core = project(":core")
+val renderApi = project(":render-api")
 
 val shadowImpl by configurations.creating {
     isCanBeResolved = true
@@ -55,6 +56,7 @@ dependencies {
 
     shadowImpl(core)
     shadowImpl(bridge)
+    shadowImpl(renderApi)
 }
 
 loom {
@@ -178,6 +180,7 @@ tasks {
 
         from(core.extensions.getByType<SourceSetContainer>()["main"].allSource)
         from(bridge.extensions.getByType<SourceSetContainer>()["main"].allSource)
+        from(renderApi.extensions.getByType<SourceSetContainer>()["main"].allSource)
     }
 }
 

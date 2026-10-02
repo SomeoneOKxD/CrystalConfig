@@ -10,6 +10,7 @@ import java.util.function.Supplier;
 public final class ConfigMarker implements StateConditions {
     private BooleanSupplier hiddenWhen = () -> false;
     private BooleanSupplier disabledWhen = () -> false;
+    private String disabledTooltip = "";
     private Supplier<String> infoTitleSupplier;
     private Supplier<String> infoDescriptionSupplier;
     private Supplier<String> infoTooltipSupplier;
@@ -28,12 +29,21 @@ public final class ConfigMarker implements StateConditions {
     }
 
     public ConfigMarker disabledWhen(BooleanSupplier predicate) {
+        return disabledWhen(predicate, "");
+    }
+
+    public ConfigMarker disabledWhen(BooleanSupplier predicate, String tooltip) {
         this.disabledWhen = predicate == null ? () -> false : predicate;
+        this.disabledTooltip = tooltip == null ? "" : tooltip;
         return this;
     }
 
     public ConfigMarker disabledWhen(State<Boolean> state) {
-        return disabledWhen(() -> Boolean.TRUE.equals(state.get()));
+        return disabledWhen(state, "");
+    }
+
+    public ConfigMarker disabledWhen(State<Boolean> state, String tooltip) {
+        return disabledWhen(() -> Boolean.TRUE.equals(state.get()), tooltip);
     }
 
     /**
@@ -93,5 +103,10 @@ public final class ConfigMarker implements StateConditions {
     @Override
     public BooleanSupplier disabledWhen() {
         return disabledWhen;
+    }
+
+    @Override
+    public String disabledTooltip() {
+        return disabledTooltip;
     }
 }

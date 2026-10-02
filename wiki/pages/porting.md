@@ -6,7 +6,7 @@ description: Advanced notes for hosting CrystalConfig core UI outside the includ
 
 # Advanced adapters
 
-Most mod developers should use the included Fabric `ConfigScreen`. This page is for advanced integrations that need to host CrystalConfig's core UI with another Minecraft screen backend or a custom renderer.
+Most mod developers should use the included Fabric `ConfigScreen`. Mods that only want the visual primitives for their own screen should use `MinecraftUiRenderUtils` and the `render-api` helpers instead of implementing an adapter. This page is for advanced integrations that need to host CrystalConfig's core UI with another Minecraft screen backend or a custom renderer.
 
 This is not a distribution path. CrystalConfig should still be consumed from the official `SomeoneOKxD/CrystalConfig` artifact.
 
@@ -16,6 +16,7 @@ This is not a distribution path. CrystalConfig should still be consumed from the
 |---|---|
 | `core` | Renderer-neutral components, layout, state, AutoConfig, persistence, themes, and draw commands. |
 | `bridge-minecraft` | Small adapter surface for Minecraft integrations. |
+| `render-api` | Stateless public drawing helpers built on the renderer-neutral core commands. |
 | `crystal-config` | Fabric client screen, render backend, MSDF text renderer, assets, and Minecraft-only widgets. |
 | `wiki` | This GitHub Pages developer wiki. |
 

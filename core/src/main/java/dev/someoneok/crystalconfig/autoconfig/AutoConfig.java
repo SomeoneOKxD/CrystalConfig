@@ -513,6 +513,7 @@ public final class AutoConfig {
         @Override public void register(GsonConfigStore store) { profiles.register(store, key); }
         @Override public void addTo(ConfigScreenBuilder.SectionBuilder section) {
             section.profile(annotation.label(), profiles, annotation.description());
+            section.optionKey(key);
             applyShared(section, owner, field, "");
         }
     }
@@ -586,6 +587,7 @@ public final class AutoConfig {
                 case CUSTOM_LIST -> addCustomList(section);
                 case CUSTOM -> addCustom(section);
             }
+            section.optionKey(key);
             applyShared(section, owner, field, "");
         }
 
@@ -952,7 +954,7 @@ public final class AutoConfig {
         StateConditions conditions = readConditions(owner, field);
         if (conditions != null) {
             section.hidden(conditions.hiddenWhen());
-            section.disabled(conditions.disabledWhen());
+            section.disabled(conditions.disabledWhen(), conditions.disabledTooltip());
         }
 
         String tooltip = field != null && field.isAnnotationPresent(ConfigTooltip.class) ? field.getAnnotation(ConfigTooltip.class).value() : tooltipOverride;

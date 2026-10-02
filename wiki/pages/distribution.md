@@ -37,7 +37,7 @@ The official JitPack publication exposes the `crystal-config` Gradle module as t
 | `crystal-config-<version>.jar` | Main Fabric mod jar used by downstream mods |
 | `crystal-config-<version>-sources.jar` | Combined sources for IDE navigation |
 
-The main jar is the project's shaded Fabric mod jar. It contains the Minecraft integration module plus the internal `core` and `bridge-minecraft` code. There is no remap jar in this project.
+The main jar is the project's shaded Fabric mod jar. It contains the Minecraft integration module plus the internal `core`, `bridge-minecraft`, and `render-api` code. There is no remap jar in this project.
 
 ## Runtime dependency
 

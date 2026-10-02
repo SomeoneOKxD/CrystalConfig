@@ -342,6 +342,10 @@ public final class ConfigScreenBuilder {
         private boolean suppressNextExpandedGroupAnimation = false;
         private int expandedMainCategory = 0;
         private int lastObservedMainIndex = -1;
+        private final Map<String, OptionTarget> optionTargets = new LinkedHashMap<>();
+        private final Map<String, OptionTarget> optionAliases = new LinkedHashMap<>();
+        private final Set<String> ambiguousOptionAliases = new HashSet<>();
+        private PendingOptionNavigation pendingOptionNavigation;
 
         private ConfigShell(String title, List<ConfigSection> sections, State<Integer> selectedMain, State<Integer> selected, Component footerButton, List<Component> footerIconButtons, String initialSearch, ConfigUiSettings settings) {
             this.title = title;
@@ -364,9 +368,119 @@ public final class ConfigScreenBuilder {
             add(settingsButton);
             add(settingsPopup);
             if (footerArea != null) add(footerArea);
+            indexOptionTargets();
+            wireDescriptionLinks();
             rebuildSidebar();
             applySearch(true);
         }
+
+        private void indexOptionTargets() {
+            optionTargets.clear();
+            optionAliases.clear();
+            ambiguousOptionAliases.clear();
+            for (int sectionIndex = 0; sectionIndex < sections.size(); sectionIndex++) {
+                collectOptionTargets(sections.get(sectionIndex).content, sectionIndex, List.of());
+            }
+        }
+
+        private void collectOptionTargets(Component component, int sectionIndex, List<Accordion> accordions) {
+            List<Accordion> childAccordions = accordions;
+            if (component instanceof Accordion accordion) {
+                childAccordions = new ArrayList<>(accordions);
+                childAccordions.add(accordion);
+            }
+
+            if (component instanceof ConditionalEntry entry) {
+                String key = entry.optionKey();
+                if (key != null && !key.isBlank()) {
+                    OptionTarget target = new OptionTarget(
+                            sectionIndex,
+                            component,
+                            List.copyOf(accordions),
+                            entry.optionLinkLabel()
+                    );
+                    registerOptionTarget(key, target);
+                }
+            }
+
+            for (Component child : component.children()) {
+                collectOptionTargets(child, sectionIndex, childAccordions);
+            }
+        }
+
+        private void registerOptionTarget(String rawKey, OptionTarget target) {
+            String key = normalizeOptionKey(rawKey);
+            if (key.isEmpty()) return;
+            optionTargets.putIfAbsent(key, target);
+
+            int dot = Math.max(key.lastIndexOf('.'), key.lastIndexOf(':'));
+            String alias = dot >= 0 ? key.substring(dot + 1) : key;
+            if (alias.isEmpty() || ambiguousOptionAliases.contains(alias)) return;
+            OptionTarget existing = optionAliases.get(alias);
+            if (existing == null || existing.component() == target.component()) {
+                optionAliases.put(alias, target);
+            } else {
+                optionAliases.remove(alias);
+                ambiguousOptionAliases.add(alias);
+            }
+        }
+
+        private void wireDescriptionLinks() {
+            for (ConfigSection section : sections) {
+                wireDescriptionLinks(section.content);
+            }
+        }
+
+        private void wireDescriptionLinks(Component component) {
+            if (component instanceof DescriptionLinkHost host) {
+                host.configureDescriptionLinks(this::optionLabel, this::navigateToOption);
+            }
+            for (Component child : component.children()) wireDescriptionLinks(child);
+        }
+
+        private String optionLabel(String rawKey) {
+            OptionTarget target = findOptionTarget(rawKey);
+            if (target == null) return null;
+            String label = target.label();
+            return label == null || label.isBlank() ? rawKey : label;
+        }
+
+        private void navigateToOption(String rawKey) {
+            OptionTarget target = findOptionTarget(rawKey);
+            if (target == null) return;
+            ConfigSection section = sections.get(target.sectionIndex());
+            if (section.hidden()) return;
+
+            boolean samePage = selected.get() == target.sectionIndex();
+            searchQuery.set("");
+            searchControl.closeImmediately();
+            applySearch(false);
+
+            for (Accordion accordion : target.accordions()) accordion.openImmediately();
+
+            int mainIndex = mainIndexForSection(target.sectionIndex());
+            selectedMain.set(mainIndex);
+            selected.set(target.sectionIndex());
+            expandedMainCategory = mainIndex;
+            lastObservedMainIndex = mainIndex;
+            pendingOptionNavigation = new PendingOptionNavigation(target, samePage);
+            rebuildSidebar();
+            markLayoutDirty();
+        }
+
+        private OptionTarget findOptionTarget(String rawKey) {
+            String key = normalizeOptionKey(rawKey);
+            if (key.isEmpty()) return null;
+            OptionTarget exact = optionTargets.get(key);
+            return exact != null ? exact : optionAliases.get(key);
+        }
+
+        private static String normalizeOptionKey(String key) {
+            return key == null ? "" : key.trim().toLowerCase(Locale.ROOT);
+        }
+
+        private record OptionTarget(int sectionIndex, Component component, List<Accordion> accordions, String label) { }
+        private record PendingOptionNavigation(OptionTarget target, boolean animated) { }
 
         private static Component createFooterArea(Component footerButton, List<Component> footerIconButtons) {
             boolean hasIcons = footerIconButtons != null && !footerIconButtons.isEmpty();
@@ -693,6 +807,15 @@ public final class ConfigScreenBuilder {
                 sidebarScroll.layout(context, sidebarRect);
             }
             contentScroll.layout(context, contentRect);
+            if (pendingOptionNavigation != null
+                    && contentScroll.content() == sections.get(pendingOptionNavigation.target().sectionIndex()).content) {
+                boolean animated = pendingOptionNavigation.animated();
+                if (contentScroll.scrollTo(pendingOptionNavigation.target().component(), animated) && !animated) {
+                    // Cross-page links should arrive at their target in this render, not one frame later.
+                    contentScroll.layout(context, contentRect);
+                }
+                pendingOptionNavigation = null;
+            }
         }
 
         @Override
@@ -848,6 +971,14 @@ public final class ConfigScreenBuilder {
             active = true;
             open.snap(1.0f);
             input.setFocused(true);
+        }
+
+        private void closeImmediately() {
+            active = false;
+            query.set("");
+            input.setFocused(false);
+            open.snap(0.0f);
+            markLayoutDirty();
         }
 
         @Override
@@ -1720,12 +1851,28 @@ public final class ConfigScreenBuilder {
         }
 
         public SectionBuilder disabled(BooleanSupplier predicate) {
-            if (lastEntry != null) lastEntry.disabledWhen(predicate);
+            return disabled(predicate, "");
+        }
+
+        public SectionBuilder disabled(BooleanSupplier predicate, String tooltip) {
+            if (lastEntry != null) {
+                lastEntry.disabledWhen(predicate);
+                lastEntry.disabledTooltipText(tooltip);
+            }
             return this;
         }
 
         public SectionBuilder tooltip(String text) {
             if (lastEntry != null) lastEntry.tooltipText(text);
+            return this;
+        }
+
+        /**
+         * Assigns a stable navigation key to the previously added option. Descriptions can
+         * link to it with {@code [[key]]} or {@code [custom label](config:key)}.
+         */
+        public SectionBuilder optionKey(String key) {
+            if (lastEntry != null) lastEntry.optionKey(key);
             return this;
         }
 
@@ -2002,14 +2149,24 @@ public final class ConfigScreenBuilder {
     private interface ConditionalEntry {
         void hiddenWhen(BooleanSupplier predicate);
         void disabledWhen(BooleanSupplier predicate);
+        void disabledTooltipText(String text);
         void tooltipText(String text);
+        void optionKey(String key);
+        String optionKey();
+        String optionLinkLabel();
+    }
+
+    private interface DescriptionLinkHost {
+        void configureDescriptionLinks(Function<String, String> labelResolver, Consumer<String> navigator);
     }
 
     private abstract static class ConditionalComponent extends Component implements ConditionalEntry {
         private BooleanSupplier hiddenWhen = () -> false;
         private BooleanSupplier disabledWhen = () -> false;
+        private String disabledTooltip = "";
         private Boolean lastHiddenState;
         private Boolean lastDisabledState;
+        private String optionKey = "";
 
         @Override
         public void hiddenWhen(BooleanSupplier predicate) {
@@ -2026,8 +2183,33 @@ public final class ConfigScreenBuilder {
         }
 
         @Override
+        public void disabledTooltipText(String text) {
+            this.disabledTooltip = text == null ? "" : text;
+        }
+
+        @Override
         public void tooltipText(String text) {
             this.tooltip(text);
+        }
+
+        @Override
+        public String tooltip() {
+            return isDisabledByPredicate() && !disabledTooltip.isBlank() ? disabledTooltip : super.tooltip();
+        }
+
+        @Override
+        public void optionKey(String key) {
+            this.optionKey = key == null ? "" : key.trim();
+        }
+
+        @Override
+        public String optionKey() {
+            return optionKey;
+        }
+
+        @Override
+        public String optionLinkLabel() {
+            return optionKey;
         }
 
         protected boolean isHiddenByPredicate() {
@@ -2182,15 +2364,18 @@ public final class ConfigScreenBuilder {
         }
     }
 
-    private static final class OptionRow extends Row implements ConditionalEntry, SearchAware {
+    private static final class OptionRow extends Row implements ConditionalEntry, SearchAware, DescriptionLinkHost {
         private final String label;
         private final String description;
         private final float labelWidth;
         private final boolean forceBelowDescription;
+        private final LinkedDescription linkedDescription = new LinkedDescription();
         private BooleanSupplier hiddenWhen = () -> false;
         private BooleanSupplier disabledWhen = () -> false;
+        private String disabledTooltip = "";
         private Boolean lastHiddenState;
         private Boolean lastDisabledState;
+        private String optionKey = "";
         private String searchQuery = "";
         private String searchSectionTitle = "";
 
@@ -2210,7 +2395,13 @@ public final class ConfigScreenBuilder {
 
         @Override public void hiddenWhen(BooleanSupplier predicate) { this.hiddenWhen = predicate == null ? () -> false : predicate; lastHiddenState = null; markLayoutDirty(); }
         @Override public void disabledWhen(BooleanSupplier predicate) { this.disabledWhen = predicate == null ? () -> false : predicate; lastDisabledState = null; markLayoutDirty(); }
+        @Override public void disabledTooltipText(String text) { this.disabledTooltip = text == null ? "" : text; }
         @Override public void tooltipText(String text) { this.tooltip(text); for (Component child : children) child.tooltip(text); }
+        @Override public String tooltip() { return disabledByPredicate() && !disabledTooltip.isBlank() ? disabledTooltip : super.tooltip(); }
+        @Override public void optionKey(String key) { this.optionKey = key == null ? "" : key.trim(); }
+        @Override public String optionKey() { return optionKey; }
+        @Override public String optionLinkLabel() { return label.isBlank() ? optionKey : label; }
+        @Override public void configureDescriptionLinks(Function<String, String> labelResolver, Consumer<String> navigator) { linkedDescription.configure(labelResolver, navigator); }
         @Override public void search(String query, String sectionTitle) { this.searchQuery = query == null ? "" : query; this.searchSectionTitle = sectionTitle == null ? "" : sectionTitle; markLayoutDirty(); }
         @Override public boolean searchMatches(String query, String sectionTitle) { return matchesSearch(query, sectionTitle); }
 
@@ -2233,7 +2424,7 @@ public final class ConfigScreenBuilder {
 
         private boolean matchesSearch(String query, String sectionTitle) {
             if (query == null || query.isEmpty()) return true;
-            return contains(label, query) || contains(description, query) || contains(sectionTitle, query) || contains(tooltip, query);
+            return contains(label, query) || contains(description, query) || contains(sectionTitle, query) || contains(tooltip, query) || contains(disabledTooltip, query);
         }
 
         @Override
@@ -2251,11 +2442,21 @@ public final class ConfigScreenBuilder {
             syncEnabledState();
             if (!visible() || !enabled()) return null;
             if (disabledByPredicate()) return bounds.contains(x, y) ? this : null;
+            if (linkedDescription.containsLink(x, y)) return this;
             return super.hitTest(x, y);
         }
 
-        @Override public boolean onMousePressed(MouseButtonEvent event) { return disabledByPredicate() && bounds.contains(event.x, event.y); }
-        @Override public boolean onMouseReleased(MouseButtonEvent event) { return disabledByPredicate() && bounds.contains(event.x, event.y); }
+        @Override
+        public boolean onMousePressed(MouseButtonEvent event) {
+            if (disabledByPredicate()) return bounds.contains(event.x, event.y);
+            return linkedDescription.mousePressed(event);
+        }
+
+        @Override
+        public boolean onMouseReleased(MouseButtonEvent event) {
+            if (disabledByPredicate()) return bounds.contains(event.x, event.y);
+            return linkedDescription.mouseReleased(event);
+        }
         @Override public boolean onMouseScrolled(MouseScrollEvent event) { return false; }
 
         @Override public boolean focusable() { return disabledByPredicate(); }
@@ -2354,7 +2555,12 @@ public final class ConfigScreenBuilder {
             if (description.isBlank()) return labelHeight;
             float descFont = context.theme().fonts().small();
             float lineHeight = Math.max(descFont + 4, context.backend().measureText("Ag", descFont, regular(context)).height() + 2);
-            int lines = Math.max(1, wrapLines(context, description, descFont, descriptionWidth(context, widget, rowWidth, maxHeight)).size());
+            int lines = Math.max(1, linkedDescription.lineCount(
+                    context,
+                    description,
+                    descFont,
+                    descriptionWidth(context, widget, rowWidth, maxHeight)
+            ));
             return 21 + lines * lineHeight;
         }
 
@@ -2430,12 +2636,20 @@ public final class ConfigScreenBuilder {
             context.text(label, x, y, labelFont, labelFace, labelColor, z + 1);
             if (!description.isBlank()) {
                 float lineHeight = Math.max(descFont + 4, context.lineHeight(descFont, descFace) + 2);
-                List<String> lines = wrapLines(context, description, descFont, descriptionWidth(context, widget, bounds.w(), bounds.h()));
                 float descY = bounds.y() + OUTER_Y + 21;
-                for (String line : lines) {
-                    context.text(line, x, descY, descFont, descFace, descColor, z + 1);
-                    descY += lineHeight;
-                }
+                linkedDescription.render(
+                        context,
+                        description,
+                        x,
+                        descY,
+                        descFont,
+                        descFace,
+                        descColor,
+                        disabled ? context.theme().palette().mutedText().withAlpha(150) : context.theme().palette().accent(),
+                        lineHeight,
+                        descriptionWidth(context, widget, bounds.w(), bounds.h()),
+                        z + 1
+                );
             }
         }
 
@@ -2464,7 +2678,7 @@ public final class ConfigScreenBuilder {
         }
     }
 
-    private static final class InfoRow extends ConditionalComponent implements SearchAware {
+    private static final class InfoRow extends ConditionalComponent implements SearchAware, DescriptionLinkHost {
         private final String fallbackTitle;
         private final String fallbackDescription;
         private final Supplier<String> titleSupplier;
@@ -2475,6 +2689,7 @@ public final class ConfigScreenBuilder {
         private String dynamicTooltip = "";
         private String searchQuery = "";
         private String searchSectionTitle = "";
+        private final LinkedDescription linkedDescription = new LinkedDescription();
         private static final float PAD_X = 14;
         private static final float PAD_Y = 12;
 
@@ -2528,6 +2743,20 @@ public final class ConfigScreenBuilder {
         @Override public boolean searchMatches(String query, String sectionTitle) { syncDynamicText(false); return matchesSearch(query, sectionTitle); }
         @Override public boolean visible() { syncDynamicText(false); return super.visible() && matchesSearch(searchQuery, searchSectionTitle); }
         @Override public String tooltip() { syncDynamicText(false); return dynamicTooltip == null || dynamicTooltip.isBlank() ? super.tooltip() : dynamicTooltip; }
+        @Override public String optionLinkLabel() { return title == null || title.isBlank() ? super.optionLinkLabel() : title; }
+        @Override public void configureDescriptionLinks(Function<String, String> labelResolver, Consumer<String> navigator) { linkedDescription.configure(labelResolver, navigator); }
+
+        @Override
+        public boolean onMousePressed(MouseButtonEvent event) {
+            if (isDisabledByPredicate()) return super.onMousePressed(event);
+            return linkedDescription.mousePressed(event);
+        }
+
+        @Override
+        public boolean onMouseReleased(MouseButtonEvent event) {
+            if (isDisabledByPredicate()) return super.onMouseReleased(event);
+            return linkedDescription.mouseReleased(event);
+        }
 
         @Override
         public boolean needsFreshRender() {
@@ -2548,7 +2777,7 @@ public final class ConfigScreenBuilder {
             if (description.isBlank()) return constraints.clamp(new Size(constraints.maxWidth(), Math.max(42, PAD_Y * 2 + titleH)));
             float descFont = context.theme().fonts().small();
             float lineHeight = Math.max(descFont + 4, context.backend().measureText("Ag", descFont, regular(context)).height() + 2);
-            int lines = Math.max(1, wrapLines(context, description, descFont, textWidth(constraints.maxWidth())).size());
+            int lines = Math.max(1, linkedDescription.lineCount(context, description, descFont, textWidth(constraints.maxWidth())));
             float height = PAD_Y + titleH + 8 + lines * lineHeight + PAD_Y;
             return constraints.clamp(new Size(constraints.maxWidth(), Math.max(62, height)));
         }
@@ -2574,21 +2803,31 @@ public final class ConfigScreenBuilder {
             if (!description.isBlank()) {
                 float lineHeight = Math.max(descFont + 4, context.lineHeight(descFont, descFace) + 2);
                 float y = titleY + titleH + 8;
-                for (String line : wrapLines(context, description, descFont, textWidth(bounds.w()))) {
-                    context.text(line, bounds.x() + PAD_X, y, descFont, descFace, descColor, z + 1);
-                    y += lineHeight;
-                }
+                linkedDescription.render(
+                        context,
+                        description,
+                        bounds.x() + PAD_X,
+                        y,
+                        descFont,
+                        descFace,
+                        descColor,
+                        disabled ? context.theme().palette().mutedText().withAlpha(150) : context.theme().palette().accent(),
+                        lineHeight,
+                        textWidth(bounds.w()),
+                        z + 1
+                );
             }
         }
     }
 
-    private static final class Accordion extends ConditionalComponent implements SearchAware {
+    private static final class Accordion extends ConditionalComponent implements SearchAware, DescriptionLinkHost {
         private final String title;
         private final String description;
         private final Component content;
         private boolean open = false;
         private String searchQuery = "";
         private String searchSectionTitle = "";
+        private final LinkedDescription linkedDescription = new LinkedDescription();
         private final AnimatedFloat expansion = new AnimatedFloat(0).speed(16);
         private float currentHeaderHeight = COMPACT_HEADER_HEIGHT;
         private float measuredContentHeight = 0;
@@ -2611,6 +2850,8 @@ public final class ConfigScreenBuilder {
         }
 
         @Override public void search(String query, String sectionTitle) { this.searchQuery = query == null ? "" : query; this.searchSectionTitle = sectionTitle == null ? "" : sectionTitle; markLayoutDirty(); }
+        @Override public String optionLinkLabel() { return title.isBlank() ? super.optionLinkLabel() : title; }
+        @Override public void configureDescriptionLinks(Function<String, String> labelResolver, Consumer<String> navigator) { linkedDescription.configure(labelResolver, navigator); }
         @Override public boolean searchMatches(String query, String sectionTitle) {
             if (query == null || query.isEmpty()) return true;
             if (contains(title, query) || contains(description, query) || contains(sectionTitle, query) || contains(tooltip, query)) return true;
@@ -2629,8 +2870,15 @@ public final class ConfigScreenBuilder {
             if (description.isBlank()) return COMPACT_HEADER_HEIGHT;
             float descFont = context.theme().fonts().small();
             float lineHeight = Math.max(descFont + 4, context.backend().measureText("Ag", descFont, regular(context)).height() + 2);
-            int lines = Math.max(1, wrapLines(context, description, descFont, descriptionWidth(width)).size());
+            int lines = Math.max(1, linkedDescription.lineCount(context, description, descFont, descriptionWidth(width)));
             return Math.max(52, DESCRIBED_DESC_TOP + lines * lineHeight + 8);
+        }
+
+        private void openImmediately() {
+            open = true;
+            expansion.snap(1.0f);
+            syncContentVisibility();
+            markLayoutDirty();
         }
 
         private void syncContentVisibility() {
@@ -2708,12 +2956,20 @@ public final class ConfigScreenBuilder {
             if (!description.isBlank()) {
                 float descFont = context.theme().fonts().small();
                 float lineHeight = Math.max(descFont + 4, context.lineHeight(descFont, descFace) + 2);
-                List<String> lines = wrapLines(context, description, descFont, descriptionWidth(header.w()));
                 float y = header.y() + DESCRIBED_DESC_TOP;
-                for (String line : lines) {
-                    context.text(line, header.x() + 32, y, descFont, descFace, context.theme().palette().mutedText(), z + 1);
-                    y += lineHeight;
-                }
+                linkedDescription.render(
+                        context,
+                        description,
+                        header.x() + 32,
+                        y,
+                        descFont,
+                        descFace,
+                        context.theme().palette().mutedText(),
+                        disabled ? context.theme().palette().mutedText().withAlpha(150) : context.theme().palette().accent(),
+                        lineHeight,
+                        descriptionWidth(header.w()),
+                        z + 1
+                );
             }
         }
 
@@ -2773,6 +3029,7 @@ public final class ConfigScreenBuilder {
         public boolean onMousePressed(MouseButtonEvent event) {
             if (isDisabledByPredicate()) return bounds.contains(event.x, event.y);
             if (event.button != MouseButton.LEFT) return false;
+            if (linkedDescription.mousePressed(event)) return true;
             syncContentVisibility();
             Rect header = new Rect(bounds.x(), bounds.y(), bounds.w(), currentHeaderHeight);
             if (header.contains(event.x, event.y)) {
@@ -2785,6 +3042,10 @@ public final class ConfigScreenBuilder {
         @Override
         public boolean onMouseReleased(MouseButtonEvent event) {
             if (isDisabledByPredicate()) return bounds.contains(event.x, event.y);
+            if (linkedDescription.mouseReleased(event)) {
+                pressed = false;
+                return true;
+            }
             boolean was = pressed;
             pressed = false;
             syncContentVisibility();

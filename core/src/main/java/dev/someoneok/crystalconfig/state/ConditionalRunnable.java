@@ -21,6 +21,7 @@ public final class ConditionalRunnable implements Runnable, StateConditions {
     private final Runnable delegate;
     private BooleanSupplier hiddenWhen = () -> false;
     private BooleanSupplier disabledWhen = () -> false;
+    private String disabledTooltip = "";
 
     private ConditionalRunnable(Runnable delegate) {
         this.delegate = Objects.requireNonNull(delegate, "delegate");
@@ -40,12 +41,21 @@ public final class ConditionalRunnable implements Runnable, StateConditions {
     }
 
     public ConditionalRunnable disabledWhen(BooleanSupplier predicate) {
+        return disabledWhen(predicate, "");
+    }
+
+    public ConditionalRunnable disabledWhen(BooleanSupplier predicate, String tooltip) {
         this.disabledWhen = predicate == null ? () -> false : predicate;
+        this.disabledTooltip = tooltip == null ? "" : tooltip;
         return this;
     }
 
     public ConditionalRunnable disabledWhen(State<Boolean> state) {
-        return disabledWhen(() -> Boolean.TRUE.equals(state.get()));
+        return disabledWhen(state, "");
+    }
+
+    public ConditionalRunnable disabledWhen(State<Boolean> state, String tooltip) {
+        return disabledWhen(() -> Boolean.TRUE.equals(state.get()), tooltip);
     }
 
     @Override
@@ -56,6 +66,11 @@ public final class ConditionalRunnable implements Runnable, StateConditions {
     @Override
     public BooleanSupplier disabledWhen() {
         return disabledWhen;
+    }
+
+    @Override
+    public String disabledTooltip() {
+        return disabledTooltip;
     }
 
     @Override

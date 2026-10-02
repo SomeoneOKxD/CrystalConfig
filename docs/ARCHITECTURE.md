@@ -26,6 +26,13 @@ Components do not render directly. They submit commands to `DrawList`:
 
 `DrawList.flush(RenderBackend)` sorts by `z`, keeps insertion order for equal `z`, batches compatible quads, and applies clip changes only when the clip rectangle changes.
 
+
+### `render-api`
+
+`render-api` is the stable, rendering-only public surface for mods that want CrystalConfig's visual primitives without adopting the config/state framework. It wraps `DrawList` and `RenderContext` with stateless helpers for rectangles, text, buttons, toggles, checkboxes, clipping, and similar primitives.
+
+The module depends on `core` but does not import Minecraft. Control values and input state are always supplied by the host.
+
 ### Minecraft bridge
 
 `bridge-minecraft` defines the small surface a version-specific backend must implement:
@@ -38,7 +45,7 @@ Components do not render directly. They submit commands to `DrawList`:
 
 ### Minecraft implementation
 
-`crystal-config` contains the Fabric client entrypoint, backend implementation, MSDF font renderer, shaders, and Minecraft-only widgets such as the sound picker. Porting to another loader should replace this module, not the core UI model.
+`crystal-config` contains the Fabric client entrypoint, internal reusable `FabricUiRenderBackend`, `MinecraftUiRenderUtils` convenience wrapper, MSDF font renderer, shaders, and Minecraft-only widgets such as the sound picker. Porting to another loader should replace this module, not the core UI model or `render-api`.
 
 ## Frame lifecycle
 

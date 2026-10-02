@@ -1,5 +1,7 @@
 package dev.someoneok.crystalconfig.config;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import dev.someoneok.crystalconfig.persistence.GsonConfigStore;
 import dev.someoneok.crystalconfig.state.State;
 import dev.someoneok.crystalconfig.theme.PresetTheme;
@@ -28,6 +30,7 @@ import java.util.function.Consumer;
  * }</pre>
  */
 public final class ConfigUiSettings {
+    public static final float BASE_RENDER_SCALE = 0.625f;
     public static final double[] SCALE_STEPS = {0.50d, 0.625d, 0.75d, 0.875d, 1.0d, 1.125d, 1.25d, 1.375d, 1.50d};
 
     private static final List<Theme> BUILTIN_THEMES = new ArrayList<>();
@@ -272,6 +275,63 @@ public final class ConfigUiSettings {
         Objects.requireNonNull(store, "store");
         store.register(key == null || key.isBlank() ? DEFAULT_PERSISTENCE_KEY : key, persistentState(), (java.lang.reflect.Type) PersistedSettings.class);
         return this;
+    }
+
+    /**
+     * Creates a config-file migration for the UI scale baseline change.
+     *
+     * <p>The old scale value directly represented render size. The current renderer uses
+     * {@link #BASE_RENDER_SCALE} as the 100% baseline, so preserving the same visual size
+     * requires dividing the old value by that baseline. The result is snapped to the
+     * supported scale steps; notably, an old value of {@code 0.625} becomes {@code 1.0}.</p>
+     *
+     * <p>Register this once when incrementing the owning {@link GsonConfigStore} schema
+     * version. Re-running it would migrate an already-migrated value a second time.</p>
+     */
+    public static GsonConfigStore.ConfigMigration scaleBaselineMigration() {
+        return scaleBaselineMigration(DEFAULT_PERSISTENCE_KEY);
+    }
+
+    /** Same as {@link #scaleBaselineMigration()}, for a custom settings persistence key. */
+    public static GsonConfigStore.ConfigMigration scaleBaselineMigration(String settingsKey) {
+        String resolvedKey = settingsKey == null || settingsKey.isBlank()
+                ? DEFAULT_PERSISTENCE_KEY
+                : settingsKey;
+        return root -> migratePersistedScale(root, resolvedKey);
+    }
+
+    /** Converts one legacy scale value to the current 100%-baseline representation. */
+    public static double migrateLegacyScale(double legacyScale) {
+        if (!Double.isFinite(legacyScale)) return 1.0d;
+        return nearestScale(legacyScale / BASE_RENDER_SCALE);
+    }
+
+    private static void migratePersistedScale(JsonObject root, String settingsKey) {
+        if (root == null) return;
+        JsonElement settingsElement = findMigrationElement(root, settingsKey);
+        if (settingsElement == null || !settingsElement.isJsonObject()) return;
+
+        JsonObject settings = settingsElement.getAsJsonObject();
+        JsonElement scaleElement = settings.get("scale");
+        if (scaleElement == null || !scaleElement.isJsonPrimitive()
+                || !scaleElement.getAsJsonPrimitive().isNumber()) return;
+
+        try {
+            settings.addProperty("scale", migrateLegacyScale(scaleElement.getAsDouble()));
+        } catch (NumberFormatException ignored) {
+            // Leave malformed values untouched; normal loading will fall back safely.
+        }
+    }
+
+    private static JsonElement findMigrationElement(JsonObject root, String key) {
+        if (key.indexOf('.') < 0 || key.startsWith("__")) return root.get(key);
+
+        JsonElement current = root;
+        for (String part : key.split("\\.")) {
+            if (part.isBlank() || current == null || !current.isJsonObject()) return null;
+            current = current.getAsJsonObject().get(part);
+        }
+        return current;
     }
 
     private synchronized State<PersistedSettings> persistentState() {

@@ -95,25 +95,33 @@ public class KeybindSelector extends Component {
     @Override
     public boolean onMousePressedCapture(MouseButtonEvent event) {
         if (!enabled() || !recording) return false;
-        return recordMouseButton(event.rawButton);
+        return handleRecordingMousePress(event);
     }
 
     @Override
     public boolean onMousePressed(MouseButtonEvent event) {
         if (!enabled()) return false;
 
-        if (recording) return recordMouseButton(event.rawButton);
+        if (recording) return handleRecordingMousePress(event);
 
         if (event.button == MouseButton.LEFT) {
             recording = true;
             return true;
         }
-
-        if (event.button == MouseButton.RIGHT && allowNone) {
-            value.set(Keybind.none());
-            return true;
-        }
         return false;
+    }
+
+    private boolean handleRecordingMousePress(MouseButtonEvent event) {
+        if (bounds.contains(event.x, event.y) || event.button == MouseButton.OTHER) {
+            return recordMouseButton(event.rawButton);
+        }
+
+        if (event.button == MouseButton.LEFT || event.button == MouseButton.RIGHT) {
+            recording = false;
+        }
+
+        // Consume middle-clicks outside without cancelling so focus remains on this selector.
+        return true;
     }
 
     private boolean recordMouseButton(int button) {
@@ -129,12 +137,7 @@ public class KeybindSelector extends Component {
         if (!enabled() || !recording) return false;
 
         if (event.keyCode == KeyCodes.ESCAPE) {
-            recording = false;
-            return true;
-        }
-
-        if (allowNone && (event.keyCode == KeyCodes.BACKSPACE || event.keyCode == KeyCodes.DELETE)) {
-            value.set(Keybind.none());
+            if (allowNone) value.set(Keybind.none());
             recording = false;
             return true;
         }

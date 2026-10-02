@@ -66,12 +66,11 @@ public final class MsdfTextRenderer {
         int argb = color.multiplyAlpha(opacity).toArgb();
 
         if (shadow) {
-            float shadowAlpha = 0.28f;
-            float shadowOffset = 0.45f;
-            int a = (int) (((argb >>> 24) & 0xFF) * shadowAlpha);
-            int r = (int) (((argb >>> 16) & 0xFF) * 0.08f);
-            int g = (int) (((argb >>> 8) & 0xFF) * 0.08f);
-            int b = (int) ((argb & 0xFF) * 0.08f);
+            float shadowOffset = 1.0f;
+            int a = (argb >>> 24) & 0xFF;
+            int r = Math.round(((argb >>> 16) & 0xFF) * 0.25f);
+            int g = Math.round(((argb >>> 8) & 0xFF) * 0.25f);
+            int b = Math.round((argb & 0xFF) * 0.25f);
             int shadowColor =
                     (a << 24) |
                             (r << 16) |

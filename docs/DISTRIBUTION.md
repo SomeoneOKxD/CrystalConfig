@@ -44,7 +44,7 @@ When CrystalConfig is required at runtime, add it to the consuming mod's `fabric
 
 ## Official release artifacts
 
-CrystalConfig's distributable artifact is the `shadowJar` output from the `crystal-config` module. That shaded jar is the actual Fabric mod jar: it contains the Minecraft module plus the internal `core` and `bridge-minecraft` code. No remap task is used for the published artifact in this build setup.
+CrystalConfig's distributable artifact is the `shadowJar` output from the `crystal-config` module. That shaded jar is the actual Fabric mod jar: it contains the Minecraft module plus the internal `core`, `bridge-minecraft`, and `render-api` code. No remap task is used for the published artifact in this build setup.
 
 Build the official local release artifacts with:
 

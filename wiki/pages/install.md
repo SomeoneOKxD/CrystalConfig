@@ -82,7 +82,7 @@ The `crystalconfig` mod also calls `MinecraftAutoConfig.register()` from its own
 
 ## Sources in IDEs
 
-The official JitPack publication attaches a combined sources jar containing `crystal-config`, `core`, and `bridge-minecraft` sources. Gradle-aware IDEs can use that sources jar for navigation when dependency sources are downloaded.
+The official JitPack publication attaches a combined sources jar containing `crystal-config`, `core`, `bridge-minecraft`, and `render-api` sources. Gradle-aware IDEs can use that sources jar for navigation when dependency sources are downloaded.
 
 ## What to import
 

@@ -25,5 +25,6 @@ rootProject.name = 'crystal-config'
 
 include 'core'
 include 'bridge-minecraft'
+include 'render-api'
 include 'crystal-config'
 include 'wiki'

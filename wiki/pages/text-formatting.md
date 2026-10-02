@@ -72,3 +72,34 @@ Escape a formatting code with a backslash when you want to display it literally 
 ```java
 section.info("Formatting", "Use \\§a to show the green color code literally.");
 ```
+
+## Links to config options
+
+Descriptions on normal options, info rows, and accordions can link to another config option by its key.
+
+Use the target option label automatically:
+
+```java
+@ConfigToggle(
+        key = "showDetails",
+        label = "Show details",
+        description = "Requires [[enabled]] to be turned on."
+)
+```
+
+Or provide custom link text:
+
+```java
+description = "Enable [the master switch](config:enabled) first."
+```
+
+AutoConfig registers annotation keys automatically. Manual builders assign a key to the previously added entry with `optionKey(...)`:
+
+```java
+section.toggle("Enabled", enabled, "Master switch.")
+        .optionKey("enabled")
+        .slider("Opacity", opacity, 0.0, 1.0, 0.05, "Used while [[enabled]] is active.")
+        .optionKey("opacity");
+```
+
+A full generated key or a unique final key segment may be used. Clicking a same-page link smoothly scrolls to its option. Clicking a link to another page switches pages and jumps directly to the option. Enclosing accordions open automatically.

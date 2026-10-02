@@ -6,4 +6,5 @@ import java.util.function.BooleanSupplier;
 public interface StateConditions {
     default BooleanSupplier hiddenWhen() { return () -> false; }
     default BooleanSupplier disabledWhen() { return () -> false; }
+    default String disabledTooltip() { return ""; }
 }

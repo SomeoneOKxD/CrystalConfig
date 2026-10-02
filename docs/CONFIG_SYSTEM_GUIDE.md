@@ -19,10 +19,10 @@ MutableState<Boolean> enabled = new MutableState<>(true);
 
 ConditionalState<Double> scale = ConditionalState
         .mutable(1.0d)
-        .disabledWhen(() -> !enabled.get());
+        .disabledWhen(() -> !enabled.get(), "Enable this option first.");
 ```
 
-`ConditionalState` works on option rows. `@ConfigCategory` also supports `hiddenWhen` and `disabledWhen` members that point to a static boolean, `State<Boolean>`, `BooleanSupplier`, or no-argument static method.
+`ConditionalState` works on option rows. `disabledWhen` accepts an optional tooltip string that is shown only while the option is disabled. `@ConfigCategory` also supports `hiddenWhen` and `disabledWhen` members that point to a static boolean, `State<Boolean>`, `BooleanSupplier`, or no-argument static method.
 
 Hidden sub-categories are removed from navigation and content. Disabled sub-categories stay visible but block their rows and navigation entry.
 

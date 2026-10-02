@@ -152,7 +152,7 @@ section.color("Accent color", accent, true, "Main UI accent.");
 
 ## Keybind selector
 
-Mouse buttons are allowed by default. Set `allowMouseButtons = false` when an option must accept keyboard keys only. Escape cancels listening without changing the current value; Backspace and Delete clear it unless `disallowNone = true`.
+Mouse buttons are allowed by default. Set `allowMouseButtons = false` when an option must accept keyboard keys only. While listening, Escape clears the keybind unless `disallowNone = true` (in which case it only cancels). Left, middle, and right mouse buttons are assigned only while hovering the keybind button. Side mouse buttons can be assigned anywhere on the screen. Outside the button, left- or right-click cancels listening; middle-click is ignored.
 
 ```java
 @ConfigKeybind(

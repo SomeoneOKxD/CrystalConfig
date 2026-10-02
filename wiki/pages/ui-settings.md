@@ -111,6 +111,19 @@ Available steps are:
 0.50, 0.625, 0.75, 0.875, 1.0, 1.125, 1.25, 1.375, 1.50
 ```
 
+The displayed `1.0` (100%) setting is exactly the old 62.5% presentation. Minecraft already applies its GUI scale to screen coordinates and rendering, so CrystalConfig does not multiply by the window GUI scale a second time. This keeps 100% equal to the old 62.5% at every Minecraft GUI scale while still following Minecraft's GUI scaling normally.
+
+When upgrading from the old scale baseline, add the supplied migration while incrementing your config schema version:
+
+```java
+GsonConfigStore store = GsonConfigStore.builder(configPath)
+        .configVersion(2)
+        .migration(1, ConfigUiSettings.scaleBaselineMigration())
+        .build();
+```
+
+The migration preserves the closest available visual size by converting `oldScale / 0.625` and snapping to a supported step. In particular, the old `0.625` (63%) value becomes `1.0` (100%). Pass the same custom persistence key to `scaleBaselineMigration(key)` when UI settings are not stored under `__configUiSettings`. Register the migration for one schema-version transition only.
+
 `UiRoot` also has `globalScale(float)`, which multiplies the root scale after the user's selected settings scale:
 
 ```java

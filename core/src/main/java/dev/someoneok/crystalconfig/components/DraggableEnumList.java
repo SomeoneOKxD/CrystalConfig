@@ -371,6 +371,16 @@ public class DraggableEnumList<T extends Enum<T>> extends Component {
     }
 
     @Override
+    protected boolean retainFocusFor(Component hit) {
+        Component scope = parent();
+        if (scope == null || hit == null) return false;
+        for (Component current = hit; current != null; current = current.parent()) {
+            if (current == scope) return true;
+        }
+        return false;
+    }
+
+    @Override
     public boolean onKeyPressed(KeyEvent event) {
         if (event.keyCode == KeyCodes.ENTER || event.keyCode == KeyCodes.SPACE) {
             setExpanded(!expandedView());
@@ -386,7 +396,7 @@ public class DraggableEnumList<T extends Enum<T>> extends Component {
     }
 
     private boolean expandedView() {
-        return expanded || focused || draggingIndex >= 0 || addOpen;
+        return expanded || draggingIndex >= 0 || addOpen;
     }
 
     private void setExpanded(boolean expanded) {
