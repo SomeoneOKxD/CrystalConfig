@@ -61,6 +61,11 @@ public class ColorPicker extends Component {
     }
 
     @Override
+    public boolean hasTextInputFocus() {
+        return focused() && expanded && inputFocused && visible() && enabled();
+    }
+
+    @Override
     public void tick(float deltaSeconds) {
         if (!enabled()) {
             expanded = false;

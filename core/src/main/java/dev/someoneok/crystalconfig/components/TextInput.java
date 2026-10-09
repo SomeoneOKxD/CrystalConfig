@@ -256,6 +256,11 @@ public class TextInput extends Component {
     }
 
     @Override
+    public boolean hasTextInputFocus() {
+        return focused() && visible() && enabled();
+    }
+
+    @Override
     protected void onFocusChanged(boolean focused) {
         if (!focused) {
             commit();

@@ -31,6 +31,9 @@ public final class ConfigScreen extends Screen {
     private float lastRenderScale = Float.NaN;
     private long lastSettingsVersion = Long.MIN_VALUE;
     private boolean forceCustomRenderNextFrame = true;
+    //? if >=26.3 {
+    /*private boolean sdlTextInputFocused;
+    *///?}
     private int forceCustomRenderFrames = 0;
     private long forceUncappedRenderUntilNs = 0L;
 
@@ -53,9 +56,13 @@ public final class ConfigScreen extends Screen {
         this.fabricAdapter = new FabricUiRenderBackend()
                 .textShadow(resolvedTextShadowGetter)
                 .onClose(this::requestClose)
-                .onOpenUrl(url -> Minecraft.getInstance().execute(
-                        () -> ConfirmLinkScreen.confirmLinkNow(ConfigScreen.this, url, false)
-                ));
+                .onOpenUrl(url -> Minecraft.getInstance().execute(() -> {
+                    //? if >=26.3 {
+                    /*ConfirmLinkScreen.confirmLinkNow(ConfigScreen.this, java.net.URI.create(url), false);
+                    *///?} else {
+                    ConfirmLinkScreen.confirmLinkNow(ConfigScreen.this, url, false);
+                    //?}
+                }));
         this.controller = new MinecraftUiController<>(root, fabricAdapter);
     }
 
@@ -83,66 +90,107 @@ public final class ConfigScreen extends Screen {
         } else {
             fabricAdapter.replayCachedFrame(graphics);
         }
+        // Focus can also change from animation ticks, callbacks and state updates.
+        syncTextInputFocus();
     }
 
     @Override
     public void onClose() {
+        releaseTextInputFocus();
         controller.close();
         requestClose();
     }
 
     @Override
     public void removed() {
+        releaseTextInputFocus();
         controller.close();
         super.removed();
     }
 
     private void requestClose() {
+        //? if <26.2 {
         Minecraft.getInstance().setScreen(null);
+        //?} else {
+        /*Minecraft.getInstance().gui.setScreen(null);
+        *///?}
+    }
+
+    // CrystalConfig owns its own component tree, so Minecraft's GuiEventListener
+    // focus tracking cannot identify its nested custom editable widgets.
+    private void syncTextInputFocus() {
+        //? if >=26.3 {
+        /*boolean focused = controller.root().hasActiveTextInput();
+        if (focused != sdlTextInputFocused) {
+            Minecraft.getInstance().textInputManager().onTextInputFocusChange(this, focused);
+            sdlTextInputFocused = focused;
+        }
+        *///?}
+    }
+
+    private void releaseTextInputFocus() {
+        //? if >=26.3 {
+        /*if (sdlTextInputFocused) {
+            Minecraft.getInstance().textInputManager().onTextInputFocusChange(this, false);
+            sdlTextInputFocused = false;
+        }
+        *///?}
     }
 
     @Override
     public boolean keyPressed(KeyEvent event) {
         forceCustomRenderNextFrame = true;
         forceCustomRenderFrames = Math.max(forceCustomRenderFrames, 3);
-        return controller.keyPressed(
-                event.key(),
-                event.scancode(),
-                event.modifiers(),
+        //? if >=26.3 {
+        /*int keyCode = MinecraftInputCompat.keyboardKey(event.key(), event.keycode());
+        int scanCode = event.key();
+        *///?} else {
+        int keyCode = event.key();
+        int scanCode = event.scancode();
+        //?}
+        boolean consumed = controller.keyPressed(
+                keyCode,
+                scanCode,
+                MinecraftInputCompat.modifiers(event.modifiers()),
                 InputConstants.getKey(event).getDisplayName().getString()
-        ) || super.keyPressed(event);
+        );
+        syncTextInputFocus();
+        return consumed || super.keyPressed(event);
     }
 
     @Override
     public boolean charTyped(CharacterEvent event) {
         forceCustomRenderNextFrame = true;
         forceCustomRenderFrames = Math.max(forceCustomRenderFrames, 3);
-        return controller.charTyped((char) event.codepoint(), 0)
-                || super.charTyped(event);
+        boolean consumed = controller.charTyped((char) event.codepoint(), 0);
+        syncTextInputFocus();
+        return consumed || super.charTyped(event);
     }
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         forceCustomRenderNextFrame = true;
         forceCustomRenderFrames = Math.max(forceCustomRenderFrames, 3);
-        return controller.mouseClicked(
-                event.x(),
-                event.y(),
-                event.buttonInfo().button(),
-                event.buttonInfo().modifiers()
-        ) || super.mouseClicked(event, doubleClick);
+        boolean consumed = controller.mouseClicked(
+                event.x(), event.y(),
+                MinecraftInputCompat.mouseButton(event.buttonInfo().button()),
+                MinecraftInputCompat.modifiers(event.buttonInfo().modifiers())
+        );
+        syncTextInputFocus();
+        return consumed || super.mouseClicked(event, doubleClick);
     }
 
     @Override
     public boolean mouseReleased(MouseButtonEvent event) {
         forceCustomRenderNextFrame = true;
         forceCustomRenderFrames = Math.max(forceCustomRenderFrames, 3);
-        return controller.mouseReleased(
-                event.x(),
-                event.y(),
-                event.buttonInfo().button(),
-                event.buttonInfo().modifiers()
-        ) || super.mouseReleased(event);
+        boolean consumed = controller.mouseReleased(
+                event.x(), event.y(),
+                MinecraftInputCompat.mouseButton(event.buttonInfo().button()),
+                MinecraftInputCompat.modifiers(event.buttonInfo().modifiers())
+        );
+        syncTextInputFocus();
+        return consumed || super.mouseReleased(event);
     }
 
     @Override
@@ -150,14 +198,14 @@ public final class ConfigScreen extends Screen {
         forceCustomRenderNextFrame = true;
         forceCustomRenderFrames = Math.max(forceCustomRenderFrames, 3);
         forceUncappedRenderUntilNs = Math.max(forceUncappedRenderUntilNs, System.nanoTime() + 250_000_000L);
-        return controller.mouseDragged(
-                event.x(),
-                event.y(),
-                event.buttonInfo().button(),
-                dx,
-                dy,
-                event.buttonInfo().modifiers()
-        ) || super.mouseDragged(event, dx, dy);
+        boolean consumed = controller.mouseDragged(
+                event.x(), event.y(),
+                MinecraftInputCompat.mouseButton(event.buttonInfo().button()),
+                dx, dy,
+                MinecraftInputCompat.modifiers(event.buttonInfo().modifiers())
+        );
+        syncTextInputFocus();
+        return consumed || super.mouseDragged(event, dx, dy);
     }
 
     @Override
@@ -165,8 +213,9 @@ public final class ConfigScreen extends Screen {
         forceCustomRenderNextFrame = true;
         forceCustomRenderFrames = Math.max(forceCustomRenderFrames, 3);
         forceUncappedRenderUntilNs = Math.max(forceUncappedRenderUntilNs, System.nanoTime() + 350_000_000L);
-        return controller.mouseScrolled(x, y, scrollX, scrollY)
-                || super.mouseScrolled(x, y, scrollX, scrollY);
+        boolean consumed = controller.mouseScrolled(x, y, scrollX, scrollY);
+        syncTextInputFocus();
+        return consumed || super.mouseScrolled(x, y, scrollX, scrollY);
     }
 
     private boolean shouldRenderCustomUi(long now) {

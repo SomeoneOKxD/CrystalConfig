@@ -3,6 +3,10 @@
 build/
 */build/
 
+# Python release-verification tooling
+__pycache__/
+*.pyc
+
 # Java / Kotlin
 *.class
 *.jar
@@ -60,3 +64,6 @@ coverage/
 !.env.example
 local.properties
 *.local
+
+# Stonecutter-generated per-version source trees
+crystal-config/versions/*/src/

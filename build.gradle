@@ -1,3 +1,8 @@
+// Resolve Fabric Loom once at the top level so both Stonecutter trees share its classes.
+plugins {
+    id 'net.fabricmc.fabric-loom' apply false
+}
+
 subprojects {
     group = 'dev.someoneok'
     version = '0.1.0'
@@ -20,14 +25,24 @@ subprojects {
     }
 }
 
+// Keep this list in sync with the versions in settings.gradle.
+def crystalConfigVersions = ['26.1', '26.2', '26.3']
+
 tasks.register('buildModWithSources') {
     group = 'build'
-    description = 'Builds the :crystal-config:shadowJar output and the combined sources jar for CrystalConfig.'
-    dependsOn ':crystal-config:shadowJar', ':crystal-config:sourcesJar'
+    description = 'Builds and collects CrystalConfig jars and combined sources jars for every supported Minecraft version.'
+    dependsOn crystalConfigVersions.collect { version -> ":crystal-config:${version}:buildAndCollect" }
 }
 
 tasks.register('publishModToMavenLocal') {
     group = 'publishing'
-    description = 'Publishes the :crystal-config:shadowJar output and sources jar to Maven Local.'
-    dependsOn ':crystal-config:publishToMavenLocal'
+    description = 'Publishes every supported CrystalConfig Minecraft version to Maven Local.'
+    dependsOn crystalConfigVersions.collect { version -> ":crystal-config:${version}:publishToMavenLocal" }
+}
+
+// Build all version-specific testing mods from the same source tree.
+tasks.register('buildConfigTester') {
+    group = 'build'
+    description = 'Build and collect 26.1, 26.2, and 26.3 CrystalConfig tester jars.'
+    dependsOn crystalConfigVersions.collect { version -> ":config-tester:${version}:buildAndCollect" }
 }

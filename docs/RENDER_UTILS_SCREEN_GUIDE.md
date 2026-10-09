@@ -28,7 +28,7 @@ This is intentional. Drawing commands are only valid between the renderer's begi
 
 ## Complete `Screen` example
 
-The example below targets the same Minecraft 26.1 screen API used by CrystalConfig.
+The example below targets the shared CrystalConfig screen API; Stonecutter handles the Minecraft 26.1/26.2/26.3 API differences inside the backend.
 
 ```java
 package com.example.mod.client.screen;

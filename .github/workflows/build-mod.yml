@@ -7,6 +7,16 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
+      publish_release:
+        description: "Publish after manually testing rendering on 26.1, 26.2, and 26.3"
+        required: false
+        default: false
+        type: boolean
+      runtime_tested:
+        description: "I completed the runtime test checklist in docs/DISTRIBUTION.md for all three versions"
+        required: false
+        default: false
+        type: boolean
       force_recreate_release:
         description: "Delete and recreate the existing release/tag for this version"
         required: false
@@ -14,12 +24,16 @@ on:
         type: boolean
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build-mod:
-    name: Build shadowJar and sources
+    name: Build all Minecraft versions
     runs-on: ubuntu-latest
+    outputs:
+      mod_version: ${{ steps.version.outputs.mod_version }}
+      tag: ${{ steps.version.outputs.tag }}
+      release_name: ${{ steps.version.outputs.release_name }}
 
     steps:
       - name: Checkout
@@ -56,45 +70,129 @@ jobs:
           }
 
           MOD_VERSION="$(read_property mod_version)"
-          MINECRAFT_VERSION="$(read_property minecraft_version)"
-
-          if [ -z "$MOD_VERSION" ] || [ -z "$MINECRAFT_VERSION" ]; then
-            echo "mod_version and minecraft_version must both be set in gradle.properties" >&2
+          if [ -z "$MOD_VERSION" ]; then
+            echo "mod_version must be set in gradle.properties" >&2
             exit 1
           fi
 
-          TAG="v${MOD_VERSION}-mc${MINECRAFT_VERSION}"
-          RELEASE_NAME="CrystalConfig ${MOD_VERSION} for Minecraft ${MINECRAFT_VERSION}"
+          TAG="v${MOD_VERSION}"
+          RELEASE_NAME="CrystalConfig ${MOD_VERSION} (Minecraft 26.1, 26.2, 26.3)"
+
+          # A pushed tag must correspond to the exact source version it builds.
+          if [ "${GITHUB_REF_TYPE:-}" = "tag" ] && [ "${GITHUB_REF_NAME:-}" != "$TAG" ]; then
+            echo "Pushed tag ${GITHUB_REF_NAME} does not match gradle.properties ($TAG)" >&2
+            exit 1
+          fi
 
           echo "mod_version=$MOD_VERSION" >> "$GITHUB_OUTPUT"
-          echo "minecraft_version=$MINECRAFT_VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "release_name=$RELEASE_NAME" >> "$GITHUB_OUTPUT"
 
           echo "Release tag: $TAG"
           echo "Release name: $RELEASE_NAME"
 
-      - name: Build mod jar and sources jar
+      - name: Install GLSL validator
+        run: |
+          if ! command -v glslangValidator >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends glslang-tools
+          fi
+
+      - name: Compile and link shaders for every Minecraft version
+        run: python3 tools/validate_shader_sources.py
+
+      - name: Validate Stonecutter 0.9 task wiring
+        run: python3 tools/validate_gradle_task_wiring.py
+
+      - name: Check real active Stonecutter source (Minecraft 26.1)
+        run: python3 tools/validate_active_stonecutter.py
+
+      - name: Regression-test GLFW and SDL input translation
+        run: python3 tools/test_sdl_input_translation.py
+
+      - name: Build all mod and sources jars
         run: ./gradlew --no-daemon buildModWithSources --stacktrace
+
+      - name: Compile the config tester against each Minecraft version
+        run: ./gradlew --no-daemon buildConfigTester --stacktrace
+
+      - name: Verify collected release artifacts
+        shell: bash
+        env:
+          MOD_VERSION: ${{ steps.version.outputs.mod_version }}
+        run: |
+          set -euo pipefail
+          python3 tools/verify_release_artifacts.py --mod-version "$MOD_VERSION"
+
+      - name: Smoke-test JitPack Maven publications
+        shell: bash
+        env:
+          JITPACK: "true"
+          VERSION: ${{ steps.version.outputs.tag }}
+          MOD_VERSION: ${{ steps.version.outputs.mod_version }}
+        run: |
+          set -euo pipefail
+          ./gradlew --no-daemon publishModToMavenLocal --stacktrace
+          python3 tools/verify_release_artifacts.py --mod-version "$MOD_VERSION" --maven-version "$VERSION"
 
       - name: Upload mod and sources
         uses: actions/upload-artifact@v6
         with:
-          name: crystal-config-${{ steps.version.outputs.mod_version }}-mc${{ steps.version.outputs.minecraft_version }}
+          name: crystal-config-${{ steps.version.outputs.mod_version }}-all-minecraft-versions
           if-no-files-found: error
           path: |
             crystal-config/build/libs/*.jar
             !crystal-config/build/libs/*-dev.jar
             !crystal-config/build/libs/*-javadoc.jar
 
+
+  release:
+    name: Publish approved release
+    # The build job (including untrusted pull requests) never receives a write token.
+    needs: build-mod
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout the verified revision
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Download artifacts built and checked by the read-only job
+        uses: actions/download-artifact@v7
+        with:
+          name: crystal-config-${{ needs.build-mod.outputs.mod_version }}-all-minecraft-versions
+          path: crystal-config/build/libs
+
+      - name: Reverify the downloaded release jars before tagging
+        shell: bash
+        env:
+          MOD_VERSION: ${{ needs.build-mod.outputs.mod_version }}
+        run: python3 tools/verify_release_artifacts.py --mod-version "$MOD_VERSION"
+
+      - name: Verify manual runtime-release gate
+        env:
+          RUNTIME_TESTED: ${{ inputs.runtime_tested }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$RUNTIME_TESTED" != "true" ]; then
+            echo "Runtime rendering tests must be completed for 26.1, 26.2, and 26.3 before publishing (see docs/DISTRIBUTION.md)." >&2
+            exit 1
+          fi
+          case "$GITHUB_REF" in
+            refs/heads/main|refs/heads/master) ;;
+            *) echo "Release must be dispatched from main or master, not $GITHUB_REF" >&2; exit 1 ;;
+          esac
+
       - name: Create version tag and GitHub release
-        if: github.event_name != 'pull_request' && !startsWith(github.ref, 'refs/tags/')
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ steps.version.outputs.tag }}
-          RELEASE_NAME: ${{ steps.version.outputs.release_name }}
-          MOD_VERSION: ${{ steps.version.outputs.mod_version }}
-          MINECRAFT_VERSION: ${{ steps.version.outputs.minecraft_version }}
+          RELEASE_TAG: ${{ needs.build-mod.outputs.tag }}
+          RELEASE_NAME: ${{ needs.build-mod.outputs.release_name }}
+          MOD_VERSION: ${{ needs.build-mod.outputs.mod_version }}
         shell: bash
         run: |
           set -euo pipefail
@@ -108,9 +206,9 @@ jobs:
               git push --delete origin "${RELEASE_TAG}" || true
               git tag -d "${RELEASE_TAG}" || true
             else
-              echo "::notice::Release tag ${RELEASE_TAG} already exists. Skipping tag and release creation."
-              echo "::notice::Bump mod_version or minecraft_version in gradle.properties, or run this workflow manually with force_recreate_release enabled."
-              exit 0
+              echo "::error::Release tag ${RELEASE_TAG} already exists; refusing to silently succeed without publishing."
+              echo "Bump mod_version in gradle.properties, or explicitly select force_recreate_release after retesting."
+              exit 1
             fi
           fi
 
@@ -128,18 +226,27 @@ jobs:
           git push origin "${RELEASE_TAG}"
 
           cat > release-notes.md <<EOF_NOTES
-          Official CrystalConfig release for Minecraft ${MINECRAFT_VERSION}.
+          Official CrystalConfig release for Minecraft 26.1, 26.2, and 26.3.
+          Release was manually approved after runtime shader/UI testing on all three versions.
 
-          JitPack dependency version:
+          Pick the artifact matching the Minecraft version of the consuming mod (Fabric Loom no-remap):
 
           \`\`\`kotlin
-          modImplementation("com.github.SomeoneOKxD:CrystalConfig:${RELEASE_TAG}")
+          implementation("com.github.SomeoneOKxD.CrystalConfig:CrystalConfig-26.1:${RELEASE_TAG}")
+          implementation("com.github.SomeoneOKxD.CrystalConfig:CrystalConfig-26.2:${RELEASE_TAG}")
+          implementation("com.github.SomeoneOKxD.CrystalConfig:CrystalConfig-26.3:${RELEASE_TAG}")
+          \`\`\`
+
+          The legacy \`CrystalConfig\` artifact remains an alias of the Minecraft 26.1 build:
+
+          \`\`\`kotlin
+          implementation("com.github.SomeoneOKxD:CrystalConfig:${RELEASE_TAG}")
           \`\`\`
 
           Built from:
 
           - mod_version: ${MOD_VERSION}
-          - minecraft_version: ${MINECRAFT_VERSION}
+          - Minecraft versions: 26.1, 26.2, 26.3
           - tag: ${RELEASE_TAG}
           EOF_NOTES
 

@@ -1,0 +1,9 @@
+# Preserve the files' existing CRLF line endings while recognizing CR as EOL
+# when checking this patch for whitespace errors.
+crystal-config/src/main/java/dev/someoneok/crystalconfig/render/GradientRectBatchRenderState.java whitespace=cr-at-eol
+crystal-config/src/main/java/dev/someoneok/crystalconfig/render/SdfLineBatchRenderState.java whitespace=cr-at-eol
+crystal-config/src/main/java/dev/someoneok/crystalconfig/render/SdfUiRender.java whitespace=cr-at-eol
+crystal-config/src/main/java/dev/someoneok/crystalconfig/render/TextureBatchRenderState.java whitespace=cr-at-eol
+crystal-config/src/main/java/dev/someoneok/crystalconfig/render/text/MsdfTextRunRenderState.java whitespace=cr-at-eol
+docs/RENDER_UTILS_SCREEN_GUIDE.md whitespace=cr-at-eol
+gradle/wrapper/gradle-wrapper.properties whitespace=cr-at-eol

@@ -1,6 +1,10 @@
 package dev.someoneok.crystalconfig.render;
 
+//? if <26.3 {
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+//?} else {
+/*import com.mojang.renderpearl.api.pipeline.RenderPipeline;
+*///?}
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.render.TextureSetup;

@@ -1,15 +1,22 @@
 pluginManagement {
     repositories {
-        gradlePluginPortal()
         mavenCentral()
+        gradlePluginPortal()
         maven { url = 'https://maven.fabricmc.net/' }
+        maven { url = 'https://maven.kikugie.dev/releases' }
+        maven { url = 'https://maven.kikugie.dev/snapshots' }
         maven { url = 'https://jitpack.io/' }
     }
 
     plugins {
-        id 'net.fabricmc.fabric-loom' version settings.loom_version
         id 'com.gradleup.shadow' version settings.shadow_version
+        id 'net.fabricmc.fabric-loom' version settings.loom_version
     }
+}
+
+plugins {
+    id 'dev.kikugie.stonecutter' version '0.9.8'
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
 }
 
 dependencyResolutionManagement {
@@ -21,10 +28,26 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = 'crystal-config'
+rootProject.name = 'modern-mc-config-ui'
 
 include 'core'
 include 'bridge-minecraft'
 include 'render-api'
 include 'crystal-config'
+include 'config-tester'
 include 'wiki'
+
+stonecutter {
+    kotlinController = true
+    centralScript = 'build.gradle.kts'
+
+    create('crystal-config') {
+        versions('26.1', '26.2', '26.3')
+        vcsVersion = '26.1'
+    }
+
+    create('config-tester') {
+        versions('26.1', '26.2', '26.3')
+        vcsVersion = '26.1'
+    }
+}

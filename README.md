@@ -26,7 +26,8 @@ The reusable UI framework lives in `core`. Minecraft-specific rendering, input i
 | `core` | Reusable UI components, layout, state, annotations, themes, draw commands, and JSON persistence. Contains no Minecraft imports. |
 | `bridge-minecraft` | Loader/version-neutral interfaces for Minecraft render and input backends. |
 | `render-api` | Small, renderer-only public API for custom screens. No config persistence or input ownership. |
-| `crystal-config` | Published Fabric client module, Minecraft renderer backend, MSDF text renderer, shaders, and Minecraft-only widgets. This is the JitPack artifact id. |
+| `crystal-config` | Published Fabric client module, Minecraft renderer backend, MSDF text renderer, shaders, and Minecraft-only widgets. Stonecutter builds this module for Minecraft 26.1, 26.2, and 26.3. |
+| `config-tester` | Standalone client-only Fabric testing mod; all config annotations and a five-page custom rendering showcase. Uses Stonecutter for 26.1, 26.2, and 26.3. See [tester README](config-tester/README.md). |
 | `docs` | Source-maintainer notes and API references for working on this repository. |
 | `wiki` | GitHub Pages developer guide for using CrystalConfig from another mod. |
 
@@ -37,15 +38,17 @@ The reusable UI framework lives in `core`. Minecraft-specific rendering, input i
 - Gradle wrapper included in the repository
 - Network access on the first build so Gradle can download dependencies
 
-Project defaults are defined in `gradle.properties`:
+Project defaults are defined in `gradle.properties`; the Minecraft targets are declared in `settings.gradle` through Stonecutter:
 
 ```properties
-minecraft_version=26.1
-loader_version=0.18.5
-mod_version=1.0
+loom_version=1.18.3
+shadow_version=8.3.11
+mod_version=1.4
 maven_group=dev.someoneok
 archives_base_name=crystal-config
 ```
+
+The supported Minecraft nodes are `26.1`, `26.2`, and `26.3`, with `26.1` kept as the checked-in active Stonecutter source representation. Fabric Loader minimums are version-specific: **0.18.5** for 26.1, and **0.19.5** for 26.2/26.3. Edit `crystal-config/versions/<minecraft-version>/gradle.properties` to update these requirements; do not set a shared `loader_version` in the root properties.
 
 ## Use from another mod
 
@@ -63,11 +66,14 @@ repositories {
 }
 
 dependencies {
-    modImplementation("com.github.SomeoneOKxD:CrystalConfig:<version>")
+    // Pick the artifact matching your Minecraft version.
+    implementation("com.github.SomeoneOKxD.CrystalConfig:CrystalConfig-26.1:<version>")
+    // implementation("com.github.SomeoneOKxD.CrystalConfig:CrystalConfig-26.2:<version>")
+    // implementation("com.github.SomeoneOKxD.CrystalConfig:CrystalConfig-26.3:<version>")
 }
 ```
 
-Replace `<version>` with an official CrystalConfig release tag from the repository, for example `v1.0-mc26.1`. Release tags are generated from `mod_version` and `minecraft_version` in `gradle.properties`, so the same CrystalConfig version can be released for different Minecraft versions. Do not use forked repositories, mirrored repositories, alternate Maven repositories, or alternate JitPack coordinates.
+Replace `<version>` with an official CrystalConfig release tag from the repository, for example `v1.4`. One release tag contains all supported Minecraft builds. JitPack uses the `com.github.SomeoneOKxD.CrystalConfig` group for version-specific modules; the legacy `com.github.SomeoneOKxD:CrystalConfig` publication remains a 26.1 compatibility alias. Do not use forked repositories, mirrored repositories, alternate Maven repositories, or alternate JitPack coordinates.
 
 When CrystalConfig is a separate runtime dependency, also add `crystalconfig` to your mod's `fabric.mod.json` dependencies. See [Official Distribution](docs/DISTRIBUTION.md) for the official artifact details.
 
@@ -79,7 +85,7 @@ Build the distributable mod jar and combined sources jar:
 ./gradlew buildModWithSources
 ```
 
-The outputs are written to `crystal-config/build/libs/`. The main jar is produced by `:crystal-config:shadowJar`; `*-dev.jar` is the plain unshaded development jar.
+The outputs for all supported Minecraft versions are collected in `crystal-config/build/libs/`. Each Stonecutter node produces a shaded mod jar plus a combined sources jar. Run `python3 tools/verify_release_artifacts.py --mod-version 1.3` to check the shaded classes, metadata, bundled version-specific resources, and sources jars. CI also compiles/links all six GLSL programs with `glslangValidator`. Real in-game rendering still needs the manual test checklist in [Official Distribution](docs/DISTRIBUTION.md) before a release is tagged.
 
 A full Gradle build is still available when you want every standard verification task:
 
@@ -90,7 +96,7 @@ A full Gradle build is still available when you want every standard verification
 To generate MSDF font atlases from local TTF files:
 
 ```bash
-./gradlew :crystal-config:generateMsdfFonts
+./gradlew :crystal-config:26.1:generateMsdfFonts
 ```
 
 See `docs/MSDF_FONT_PIPELINE.md` for the expected font file names and `msdf-atlas-gen` location.
@@ -178,4 +184,4 @@ This project is proprietary and all rights are reserved.
 The root project and included modules contain `LICENSE` files with the same proprietary terms. The Fabric mod metadata also declares `All-Rights-Reserved`. Do not copy, modify, publish, sublicense, distribute, or use this software without prior written permission from the copyright holder.
 
 
-> JitPack note: if a version tag already exists from an older broken build, rerun the `Build and release CrystalConfig mod` workflow manually with `force_recreate_release` enabled, or bump `mod_version` / `minecraft_version` before pushing.
+> JitPack note: if a version tag already exists from an older broken build, rerun the `Build and release CrystalConfig mod` workflow manually with `force_recreate_release` enabled, or bump `mod_version` before pushing.

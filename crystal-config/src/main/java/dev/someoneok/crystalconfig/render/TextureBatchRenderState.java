@@ -1,8 +1,16 @@
 package dev.someoneok.crystalconfig.render;
 
+//? if <26.3 {
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+//?} else {
+/*import com.mojang.renderpearl.api.pipeline.RenderPipeline;
+*///?}
 import com.mojang.blaze3d.systems.RenderSystem;
+//? if <26.3 {
 import com.mojang.blaze3d.textures.FilterMode;
+//?} else {
+/*import com.mojang.renderpearl.api.textures.FilterMode;
+*///?}
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.navigation.ScreenRectangle;

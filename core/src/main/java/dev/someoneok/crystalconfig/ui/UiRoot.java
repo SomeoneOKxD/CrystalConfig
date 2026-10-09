@@ -75,6 +75,20 @@ public final class UiRoot {
         return focused;
     }
 
+    /** Whether any visible, enabled descendant currently owns custom text input. */
+    public boolean hasActiveTextInput() {
+        return hasActiveTextInput(root);
+    }
+
+    private static boolean hasActiveTextInput(Component component) {
+        if (component == null || !component.visible() || !component.enabled()) return false;
+        if (component.hasTextInputFocus()) return true;
+        for (Component child : component.children()) {
+            if (hasActiveTextInput(child)) return true;
+        }
+        return false;
+    }
+
     public Component hovered() {
         return hovered;
     }

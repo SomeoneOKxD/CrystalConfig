@@ -18,11 +18,14 @@ repositories {
 }
 
 dependencies {
-    modImplementation("com.github.SomeoneOKxD:CrystalConfig:<version>")
+    // Use the artifact matching your Minecraft version.
+    implementation("com.github.SomeoneOKxD.CrystalConfig:CrystalConfig-26.1:<version>")
+    // implementation("com.github.SomeoneOKxD.CrystalConfig:CrystalConfig-26.2:<version>")
+    // implementation("com.github.SomeoneOKxD.CrystalConfig:CrystalConfig-26.3:<version>")
 }
 ```
 
-Replace `<version>` with an official release tag from the repository. Do not consume CrystalConfig from forked repositories, mirrored repositories, alternate Maven repositories, or alternate JitPack coordinates. For the official artifact details, see [Official Distribution](DISTRIBUTION.md).
+Replace `<version>` with an official release tag from the repository, for example `v1.4`. Do not consume CrystalConfig from forked repositories, mirrored repositories, alternate Maven repositories, or alternate JitPack coordinates. For the official artifact details, see [Official Distribution](DISTRIBUTION.md).
 
 ## 1. Define config state
 

@@ -14,4 +14,18 @@ before_install:
     java -version
 
 install:
-  - ./gradlew --no-daemon :crystal-config:publishToMavenLocal --stacktrace
+  # Build all six distributable JARs, then publish all three versioned
+  # modules and the Minecraft 26.1 compatibility alias.
+  - ./gradlew --no-daemon buildModWithSources publishModToMavenLocal --stacktrace
+  - |
+    set -eu
+    if [ -z "${VERSION:-}" ]; then
+      echo "JitPack did not provide VERSION" >&2
+      exit 1
+    fi
+    MOD_VERSION="$(awk -F= '$1 == "mod_version" { gsub(/\r/, "", $2); print $2; exit }' gradle.properties)"
+    if [ -z "$MOD_VERSION" ]; then
+      echo "gradle.properties has no mod_version" >&2
+      exit 1
+    fi
+    python3 tools/verify_release_artifacts.py --mod-version "$MOD_VERSION" --maven-version "$VERSION"

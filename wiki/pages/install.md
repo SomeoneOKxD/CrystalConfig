@@ -14,15 +14,17 @@ Use the official repository only:
 https://github.com/SomeoneOKxD/CrystalConfig
 ```
 
-The official JitPack coordinate is:
+The official JitPack artifacts are version-qualified:
 
 ```text
-com.github.SomeoneOKxD:CrystalConfig:<version>
+com.github.SomeoneOKxD.CrystalConfig:CrystalConfig-26.1:<version>
+com.github.SomeoneOKxD.CrystalConfig:CrystalConfig-26.2:<version>
+com.github.SomeoneOKxD.CrystalConfig:CrystalConfig-26.3:<version>
 ```
 
-Replace `<version>` with an official release tag from `SomeoneOKxD/CrystalConfig`, for example `v1.0-mc26.1`. Do not use forked repositories, mirrored repositories, alternate Maven repositories, or alternate JitPack coordinates.
+Replace `<version>` with an official release tag from `SomeoneOKxD/CrystalConfig`, for example `v1.4`, and choose the artifact matching your Minecraft version. The unqualified `CrystalConfig:<version>` coordinate remains a compatibility alias for Minecraft 26.1. Do not use forked repositories, mirrored repositories, alternate Maven repositories, or alternate JitPack coordinates.
 
-The mod metadata in this project targets Minecraft `26.1` and Fabric Loader `0.18.5` or newer.
+The project targets Minecraft `26.1`, `26.2`, and `26.3`. CrystalConfig requires Fabric Loader `0.18.5` or newer on 26.1 and `0.19.5` or newer on 26.2/26.3.
 
 ## Gradle dependency
 
@@ -40,7 +42,8 @@ Depend on the official Fabric mod artifact:
 
 ```kotlin
 dependencies {
-    modImplementation("com.github.SomeoneOKxD:CrystalConfig:<version>")
+    implementation("com.github.SomeoneOKxD.CrystalConfig:CrystalConfig-26.1:<version>")
+    // Or CrystalConfig-26.2 / CrystalConfig-26.3 for those Minecraft versions.
 }
 ```
 
@@ -52,7 +55,7 @@ When CrystalConfig is required at runtime, add it to your `fabric.mod.json`:
 {
   "depends": {
     "fabricloader": ">=0.18.5",
-    "minecraft": ">=26.1",
+    "minecraft": "~26.1",
     "crystalconfig": ">=1.0"
   }
 }

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "crystalconfigtester",
+  "version": "${version}",
+  "name": "CrystalConfig Test Mod",
+  "description": "Developer-only config and render-utils test harness for CrystalConfig.",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["dev.someoneok.crystalconfigtester.ConfigTesterClient"]
+  },
+  "license": "All-Rights-Reserved",
+  "depends": {
+    "minecraft": "~${minecraft_version}",
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "crystalconfig": ">=1.3"
+  }
+}

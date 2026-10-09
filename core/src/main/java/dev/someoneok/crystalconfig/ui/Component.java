@@ -93,6 +93,7 @@ public abstract class Component {
     public boolean enabled() { return enabled; }
     public boolean hovered() { return hovered; }
     public boolean focused() { return focused; }
+    public boolean hasTextInputFocus() { return false; }
     public boolean focusable() { return focusable; }
     public float flexGrow() { return flexGrow; }
     public boolean fillXValue() { return fillX; }

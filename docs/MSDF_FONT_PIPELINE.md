@@ -41,7 +41,7 @@ FontAwesomeBrands-Regular.ttf       -> media-brands.ttf
 Run from IntelliJ Gradle:
 
 ```text
-:crystal-config:generateMsdfFonts
+:crystal-config:26.1:generateMsdfFonts
 ```
 
 This generates:
@@ -54,11 +54,11 @@ crystal-config/src/main/resources/assets/crystalconfig/textures/msdf/*.png
 You can also generate one face at a time:
 
 ```text
-:crystal-config:generateMsdfRegularFont
-:crystal-config:generateMsdfMediumFont
-:crystal-config:generateMsdfSemiboldFont
-:crystal-config:generateMsdfFallbackSymbolsFont
-:crystal-config:generateMsdfMediaBrandsFont
+:crystal-config:26.1:generateMsdfRegularFont
+:crystal-config:26.1:generateMsdfMediumFont
+:crystal-config:26.1:generateMsdfSemiboldFont
+:crystal-config:26.1:generateMsdfFallbackSymbolsFont
+:crystal-config:26.1:generateMsdfMediaBrandsFont
 ```
 
 ## Charset files
@@ -95,7 +95,7 @@ The config settings button uses the gear glyph `⚙` (`U+2699`), so `symbols.cha
 After changing the charset, run:
 
 ```text
-:crystal-config:generateMsdfFallbackSymbolsFont
+:crystal-config:26.1:generateMsdfFallbackSymbolsFont
 ```
 
 ## Media / brand icon glyphs
